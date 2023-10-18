@@ -1,21 +1,17 @@
+# Created by https://www.gitignore.io
+
+### Gradle ###
 .gradle
-**/build/
-!src/**/build/
+build/
+out/
 
 # Ignore Gradle GUI config
 gradle-app.setting
+.idea/
+local.properties
+maze_output/
+package-lock.json
+.cxx
 
-# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
-!gradle-wrapper.jar
-
-# Avoid ignore Gradle wrappper properties
-!gradle-wrapper.properties
-
-# Cache of project
-.gradletasknamecache
-
-# Eclipse Gradle plugin generated files
-# Eclipse Core
-.project
-# JDT-specific (Eclipse Java Development Tools)
-.classpath
+*.iml
+decisions.yml
