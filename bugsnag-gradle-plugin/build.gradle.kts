@@ -1,12 +1,16 @@
 plugins {
     id("java-gradle-plugin")
     id("org.jetbrains.kotlin.jvm") version "1.8.10"
+    id("maven-publish")
+    id("signing")
 }
 
 group = "com.bugsnag"
 version = "1.0-SNAPSHOT"
 
 dependencies {
+    compileOnly("com.android.tools.build:gradle:8.0.0")
+
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10")
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
@@ -33,3 +37,16 @@ tasks.processResources {
     from(File(bugsnagCliDir, "bin"))
 }
 
+gradlePlugin {
+    plugins {
+        val bugsnagPlugin by creating {
+            id = "com.bugsnag.gradle"
+            implementationClass = "com.bugsnag.gradle.GradlePlugin"
+        }
+    }
+}
+
+publishing {
+    publications {
+    }
+}
