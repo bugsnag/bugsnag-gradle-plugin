@@ -1,10 +1,8 @@
 package com.bugsnag.gradle
 
+import com.bugsnag.gradle.util.NullOutputStream
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.process.ExecOperations
 import java.io.File
@@ -13,10 +11,6 @@ import javax.inject.Inject
 internal abstract class BugsnagCliTask : DefaultTask() {
     @get:Inject
     abstract val execOperations: ExecOperations
-
-    @get:Optional
-    @get:InputFile
-    abstract val executableFile: RegularFileProperty
 
     @get:Nested
     abstract val globalOptions: GlobalOptions
@@ -33,8 +27,19 @@ internal abstract class BugsnagCliTask : DefaultTask() {
             .assertNormalExitValue()
     }
 
+    protected fun execUpload(uploadType: String, vararg args: String) {
+        execOperations
+            .exec {
+                it.commandLine(executable)
+                it.args("upload", uploadType)
+                globalOptions.addToUploadExecSpec(it)
+                it.args(*args)
+            }
+            .assertNormalExitValue()
+    }
+
     private fun getCliExecutable(): String {
-        return executableFile.orNull?.asFile?.absolutePath
+        return globalOptions.executableFile.orNull?.asFile?.absolutePath
             ?: systemCliIfInstalled()
             ?: embeddedCli()
     }
@@ -43,6 +48,8 @@ internal abstract class BugsnagCliTask : DefaultTask() {
         return try {
             val exitValue = execOperations
                 .exec {
+                    it.standardOutput = NullOutputStream
+                    it.errorOutput = NullOutputStream
                     it.commandLine("bugsnag-cli").args("--version")
                 }
                 .exitValue
