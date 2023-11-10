@@ -1,6 +1,5 @@
 package com.bugsnag.gradle
 
-import com.android.build.gradle.internal.tasks.factory.dependsOn
 import com.bugsnag.gradle.android.*
 import org.gradle.api.Action
 import org.gradle.api.Plugin
@@ -10,6 +9,7 @@ import javax.inject.Inject
 
 internal const val TASK_GROUP = "BugSnag"
 internal const val UPLOAD_TASK_PREFIX = "bugsnagUpload"
+internal const val CREATE_BUILD_TASK_PREFIX = "bugsnagCreate"
 
 class GradlePlugin @Inject constructor(
     private val execOperations: ExecOperations,
@@ -26,6 +26,12 @@ class GradlePlugin @Inject constructor(
                 variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "Bundle"),
                 UploadBundleTask::class.java,
                 configureUploadBundleTask(target, bugsnag, variant)
+            )
+            target.tasks.register(
+                variant.name.toTaskName(prefix = CREATE_BUILD_TASK_PREFIX, suffix = "Build"),
+                CreateBuildTask::class.java,
+            configureCreateBuildTask(bugsnag, variant)
+
             )
 
             if (variant.obfuscationMappingFile != null) {
@@ -50,10 +56,21 @@ class GradlePlugin @Inject constructor(
 
                     val projectRoot = bugsnag.projectRoot ?: target.rootDir.toString()
                     task.projectRoot.set(projectRoot)
-                }.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
+
+                    task.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
+                }
             }
         }
     }
+
+    private fun configureCreateBuildTask(bugsnag: BugsnagExtension, variant: AndroidVariant) =
+        Action<CreateBuildTask> { task ->
+            task.group = TASK_GROUP
+            task.globalOptions.configureFrom(bugsnag, execOperations)
+            task.versionName.set(variant.versionName)
+            task.versionCode.set(variant.versionCode)
+            task.projectRoot.set(task.project.projectDir)
+        }
 
     private fun configureUploadBundleTask(target: Project, bugsnag: BugsnagExtension, variant: AndroidVariant) =
         Action<UploadBundleTask> { task ->

@@ -3,6 +3,7 @@ package com.bugsnag.gradle.android
 import com.android.build.api.artifact.MultipleArtifact
 import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.AndroidComponentsExtension
+import com.android.build.api.variant.ApplicationVariant
 import com.android.build.api.variant.CanMinifyCode
 import com.android.build.api.variant.Variant
 import com.bugsnag.gradle.capitalise
@@ -23,6 +24,8 @@ data class AndroidVariant(
      * not enabled for this variant.
      */
     val obfuscationMappingFile: Provider<RegularFile>?,
+    val versionName: Provider<String?>?,
+    val versionCode: Provider<Int?>?,
     val dexFile: Provider<RegularFile>?,
 ) {
     val bundleTaskName: String
@@ -44,20 +47,45 @@ internal fun Project.onAndroidVariant(consumer: (variant: AndroidVariant) -> Uni
 }
 
 private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit) {
-    val androidExtension = extensions.findByType(AndroidComponentsExtension::class.java)
-    androidExtension?.onVariants { variant: Variant ->
-        consumer(
-            AndroidVariant(
-                variant.name,
-                variant.artifacts.get(SingleArtifact.MERGED_MANIFEST),
-                variant.artifacts.get(SingleArtifact.BUNDLE),
-                getNativeSymbolDirs(variant),
-                variant.artifacts
-                    .get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
-                    .takeIf { isMinifyEnabledFor(variant) },
-                getDexFile(variant)
-            )
-        )
+    try {
+        val androidExtension = extensions.findByType(AndroidComponentsExtension::class.java)
+        androidExtension?.onVariants { variant: Variant ->
+            when (variant) {
+                is ApplicationVariant -> variant.outputs.onEach { output ->
+                    consumer(
+                        AndroidVariant(
+                            variant.name,
+                            variant.artifacts.get(SingleArtifact.MERGED_MANIFEST),
+                            variant.artifacts.get(SingleArtifact.BUNDLE),
+                            getNativeSymbolDirs(variant),
+                            variant.artifacts
+                                .get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
+                                .takeIf { isMinifyEnabledFor(variant) },
+                            output.versionName,
+                            output.versionCode,
+                            getDexFile(variant)
+                        )
+                    )
+                }
+
+                else -> consumer(
+                    AndroidVariant(
+                        variant.name,
+                        variant.artifacts.get(SingleArtifact.MERGED_MANIFEST),
+                        variant.artifacts.get(SingleArtifact.BUNDLE),
+                        getNativeSymbolDirs(variant),
+                        variant.artifacts
+                            .get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
+                            .takeIf { isMinifyEnabledFor(variant) },
+                        null,
+                        null,
+                        getDexFile(variant)
+                    )
+                )
+            }
+        }
+    } catch (ex: NoClassDefFoundError) {
+        // ignore these - AGP is not available in this Project
     }
 }
 
