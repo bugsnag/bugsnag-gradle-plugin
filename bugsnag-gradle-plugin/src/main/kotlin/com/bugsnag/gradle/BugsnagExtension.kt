@@ -47,4 +47,11 @@ open class BugsnagExtension {
      * Defaults to `null`
      */
     var cliPath: File? = null
+
+    /**
+     * Optionally override the detected apiKey.
+     *
+     * Defaults to `null`
+     */
+    var apiKey: String? = null
 }

@@ -63,6 +63,7 @@ internal fun GlobalOptions.from(extension: BugsnagExtension) {
     extension.cliPath?.let { executableFile.set(it) }
     extension.timeout?.let { timeout.set(it) }
     extension.retries?.let { retries.set(it) }
+    extension.apiKey?.let { apiKey.set(it) }
     failOnUploadError.set(extension.failOnUploadError)
     overwrite.set(extension.overwrite)
 }
