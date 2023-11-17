@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.bugsnag"
-version = "1.0-SNAPSHOT"
+version = project.findProperty("VERSION_NAME") ?: "1.0-SNAPSHOT"
 
 dependencies {
     compileOnly("com.android.tools.build:gradle:8.0.0")

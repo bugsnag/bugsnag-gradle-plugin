@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:allowBackup="true"
+        android:label="Test Fixture App"
+        android:supportsRtl="true"
+        tools:targetApi="31">
+
+        <activity android:name="com.example.fixture.FixtureActivity" />
+
+        <meta-data android:name="com.bugsnag.android.API_KEY"
+                   android:value="TEST_API_KEY"/>
+    </application>
+</manifest>

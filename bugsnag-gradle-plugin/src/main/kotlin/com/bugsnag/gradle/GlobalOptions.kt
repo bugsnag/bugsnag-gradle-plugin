@@ -31,6 +31,18 @@ interface GlobalOptions {
     @get:Input
     @get:Optional
     val retries: Property<Int>
+
+    @get:Input
+    @get:Optional
+    val uploadApiEndpointRootUrl: Property<String>
+
+    @get:Input
+    @get:Optional
+    val buildApiEndpointRootUrl: Property<String>
+
+    @get:Input
+    @get:Optional
+    val port: Property<Int>
 }
 
 internal fun GlobalOptions.addToExecSpec(execSpec: ExecSpec) {
@@ -57,6 +69,18 @@ internal fun GlobalOptions.addToUploadExecSpec(execSpec: ExecSpec) {
     if (retries.getOrElse(0) > 0) {
         execSpec.args("--retries=${retries.get()}")
     }
+
+    if (uploadApiEndpointRootUrl.isPresent) {
+        execSpec.args("--upload-api-root-url=${uploadApiEndpointRootUrl.get()}")
+    }
+
+    if (buildApiEndpointRootUrl.isPresent) {
+        execSpec.args("--build-api-root-url=${buildApiEndpointRootUrl.get()}")
+    }
+
+    if (port.isPresent) {
+        execSpec.args("--port=${port.get()}")
+    }
 }
 
 internal fun GlobalOptions.from(extension: BugsnagExtension) {
@@ -64,6 +88,8 @@ internal fun GlobalOptions.from(extension: BugsnagExtension) {
     extension.timeout?.let { timeout.set(it) }
     extension.retries?.let { retries.set(it) }
     extension.apiKey?.let { apiKey.set(it) }
+    extension.uploadApiEndpointRootUrl?.let { uploadApiEndpointRootUrl.set(it) }
+    extension.buildApiEndpointRootUrl?.let { buildApiEndpointRootUrl.set(it) }
     failOnUploadError.set(extension.failOnUploadError)
     overwrite.set(extension.overwrite)
 }
