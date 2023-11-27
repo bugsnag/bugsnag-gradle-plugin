@@ -10,4 +10,4 @@ Feature: Android AAB upload
 
   Scenario: Upload debug bundle
     When I build the debug bundle
-    And I should receive no builds
+    Then I should receive no builds

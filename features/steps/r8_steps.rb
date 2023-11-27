@@ -1,9 +1,9 @@
 require 'zlib'
 require 'stringio'
 
-Then('{int} requests have an R8 mapping file with the following symbols:') do |request_count, data_table|
+Then('{int} request(s) have/has an R8 mapping file with the following symbols:') do |request_count, data_table|
   requests = get_requests_with_field('build', 'proguard')
-  assert_equal(request_count, requests.length, 'Wrong number of mapping API requests')
+  Maze.check.equal(request_count, requests.length, "Wrong number of mapping API requests: expected #{request_count}, got #{requests.length}")
 
   # inflate gzipped proguard mapping file & verify contents
   requests.each do |request|
@@ -17,15 +17,15 @@ end
 
 def valid_android_mapping_api?(request_body)
   valid_mapping_api?(request_body)
-  assert_not_nil(request_body['buildUUID'])
-  assert_not_nil(request_body['proguard'])
+  Maze.check.not_nil(request_body['buildUUID'], 'buildUUID was nil')
+  Maze.check.not_nil(request_body['proguard'], 'proguard was nil')
 end
 
 def valid_mapping_api?(request_body)
-  assert_equal($api_key, request_body['apiKey'])
-  assert_not_nil(request_body['appId'])
-  assert_not_nil(request_body['versionCode'])
-  assert_not_nil(request_body['versionName'])
+  Maze.check.equal($api_key, request_body['apiKey'], "Wrong apiKey: expected #{api_key}, got #{request_body['apiKey']}")
+  Maze.check.not_nil(request_body['appId'], 'appId was nil')
+  Maze.check.not_nil(request_body['versionCode'], 'versionCode was nil')
+  Maze.check.not_nil(request_body['versionName'], 'versionName was nil')
 end
 
 def valid_r8_mapping_contents?(mapping_file_lines, expected_entries)
@@ -36,7 +36,7 @@ def valid_r8_mapping_contents?(mapping_file_lines, expected_entries)
     has_mapping_entry = mapping_file_lines.find { |line|
       line.include?(expected_entry) && line.include?(' -> ')
     }
-    assert_false(has_mapping_entry.nil?, "No entry in mapping file for '#{row[0]}'.")
+    Maze.check.false(has_mapping_entry.nil?, "No entry in mapping file for '#{row[0]}'.")
   end
 end
 
