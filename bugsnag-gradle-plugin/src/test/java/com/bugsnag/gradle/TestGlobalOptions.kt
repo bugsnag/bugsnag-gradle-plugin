@@ -9,6 +9,7 @@ import org.gradle.api.provider.Property
 
 @Suppress("UNCHECKED_CAST")
 internal class TestGlobalOptions : GlobalOptions, PropertyHost by PropertyHost.NO_OP {
+    @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
     override val executableFile: RegularFileProperty =
         DefaultFilePropertyFactory(this, IdentityFileResolver(), null)
             .newFileProperty()
