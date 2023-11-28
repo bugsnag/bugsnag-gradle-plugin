@@ -37,7 +37,7 @@ internal fun Project.onAndroidVariant(consumer: (variant: AndroidVariant) -> Uni
                     variant.artifacts
                         .get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
                         .takeIf { isMinifyEnabledFor(variant) },
-                )
+                ),
             )
         }
     } catch (ex: NoClassDefFoundError) {

@@ -23,13 +23,13 @@ class GradlePlugin : Plugin<Project> {
             target.tasks.register(
                 variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "Bundle"),
                 UploadBundleTask::class.java,
-                configureUploadBundleTask(bugsnag, variant)
+                configureUploadBundleTask(bugsnag, variant),
             )
 
             if (variant.obfuscationMappingFile != null) {
                 target.tasks.register(
                     variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "ProguardMapping"),
-                    UploadMappingTask::class.java
+                    UploadMappingTask::class.java,
                 ) { task ->
                     task.group = TASK_GROUP
                     task.globalOptions.from(bugsnag)

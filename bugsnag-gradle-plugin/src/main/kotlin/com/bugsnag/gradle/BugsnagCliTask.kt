@@ -72,7 +72,7 @@ internal abstract class BugsnagCliTask : DefaultTask() {
     private fun extractPlatformExecutable(destination: File) {
         val resourceName = getCliResourceName(
             System.getProperty("os.name").lowercase(),
-            System.getProperty("os.arch").lowercase()
+            System.getProperty("os.arch").lowercase(),
         )
 
         destination.outputStream().buffered().use { output ->
