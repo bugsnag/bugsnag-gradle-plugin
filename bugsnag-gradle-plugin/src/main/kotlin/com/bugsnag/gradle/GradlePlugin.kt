@@ -1,9 +1,7 @@
 package com.bugsnag.gradle
 
-import com.bugsnag.gradle.android.AndroidVariant
-import com.bugsnag.gradle.android.UploadBundleTask
-import com.bugsnag.gradle.android.UploadMappingTask
-import com.bugsnag.gradle.android.onAndroidVariant
+import com.android.build.gradle.internal.tasks.factory.dependsOn
+import com.bugsnag.gradle.android.*
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -31,21 +29,35 @@ class GradlePlugin : Plugin<Project> {
                     variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "ProguardMapping"),
                     UploadMappingTask::class.java
                 ) { task ->
-                    task.group = TASK_GROUP
-                    task.globalOptions.from(bugsnag)
+                    configureAndroidTask(task, bugsnag, variant)
                     task.mappingFile.set(variant.obfuscationMappingFile)
                 }
+            }
+
+            if (variant.nativeSymbols != null) {
+                target.tasks.register(
+                    variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "NativeSymbols"),
+                    UploadNativeSymbolsTask::class.java
+                ) { task ->
+                    configureAndroidTask(task, bugsnag, variant)
+                    task.symbolFiles.from(variant.nativeSymbols)
+                }.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
             }
         }
     }
 
     private fun configureUploadBundleTask(bugsnag: BugsnagExtension, variant: AndroidVariant) =
         Action<UploadBundleTask> { task ->
-            task.group = TASK_GROUP
-            task.globalOptions.from(bugsnag)
+            configureAndroidTask(task, bugsnag, variant)
             task.bundleFile.set(variant.bundleFile)
 
             // make sure that the bundle is actually built first
             task.dependsOn(variant.bundleTaskName)
         }
+
+    private fun configureAndroidTask(task: AbstractAndroidTask, bugsnag: BugsnagExtension, variant: AndroidVariant) {
+        task.group = TASK_GROUP
+        task.globalOptions.from(bugsnag)
+        task.androidOptions.from(variant)
+    }
 }

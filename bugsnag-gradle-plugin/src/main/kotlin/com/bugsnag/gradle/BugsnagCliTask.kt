@@ -5,6 +5,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.StopExecutionException
 import org.gradle.process.ExecOperations
+import org.gradle.process.ExecResult
+import org.gradle.process.ExecSpec
 import java.io.File
 import javax.inject.Inject
 
@@ -17,25 +19,29 @@ internal abstract class BugsnagCliTask : DefaultTask() {
 
     private val executable: String = getCliExecutable()
 
-    protected fun exec(vararg args: String) {
-        execOperations
-            .exec {
-                it.commandLine(executable)
-                globalOptions.addToExecSpec(it)
-                it.args(*args)
-            }
-            .assertNormalExitValue()
+    protected open fun exec(vararg args: String) {
+        exec {
+            it.commandLine(executable)
+            globalOptions.addToExecSpec(it)
+            it.args(*args)
+        }.assertNormalExitValue()
     }
 
-    protected fun execUpload(uploadType: String, vararg args: String) {
-        execOperations
+    protected open fun execUpload(uploadType: String, vararg args: String) {
+        exec {
+            it.commandLine(executable)
+            it.args("upload", uploadType)
+            globalOptions.addToUploadExecSpec(it)
+            it.args(*args)
+        }.assertNormalExitValue()
+    }
+
+    protected open fun exec(spec: (ExecSpec) -> Unit): ExecResult {
+        return execOperations
             .exec {
                 it.commandLine(executable)
-                it.args("upload", uploadType)
-                globalOptions.addToUploadExecSpec(it)
-                it.args(*args)
+                spec(it)
             }
-            .assertNormalExitValue()
     }
 
     private fun getCliExecutable(): String {

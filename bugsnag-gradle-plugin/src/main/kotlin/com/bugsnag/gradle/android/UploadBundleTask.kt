@@ -1,11 +1,10 @@
 package com.bugsnag.gradle.android
 
-import com.bugsnag.gradle.BugsnagCliTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 
-internal abstract class UploadBundleTask : BugsnagCliTask() {
+internal abstract class UploadBundleTask : AbstractAndroidTask() {
     @get:InputFile
     abstract val bundleFile: RegularFileProperty
 
