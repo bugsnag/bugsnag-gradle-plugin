@@ -14,3 +14,7 @@ end
 When('I build the {word} bundle') do |variant|
   Maze::Runner.run_command("features/scripts/bundle.sh #{variant.capitalize}")
 end
+
+When('I upload the {word} mapping.txt') do |variant|
+  Maze::Runner.run_command("features/scripts/assemble_only.sh #{variant.capitalize}")
+end
