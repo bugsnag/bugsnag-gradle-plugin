@@ -42,6 +42,7 @@ internal abstract class BugsnagCliTask : DefaultTask() {
                 it.commandLine(executable)
                 spec(it)
             }
+            .assertNormalExitValue()
     }
 
     private fun getCliExecutable(): String {
