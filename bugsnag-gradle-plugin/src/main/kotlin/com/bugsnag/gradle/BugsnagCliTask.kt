@@ -3,9 +3,11 @@ package com.bugsnag.gradle
 import com.bugsnag.gradle.util.NullOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.StopExecutionException
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
+import java.io.File
 import javax.inject.Inject
 
 internal abstract class BugsnagCliTask : DefaultTask() {
@@ -45,7 +47,7 @@ internal abstract class BugsnagCliTask : DefaultTask() {
     private fun getCliExecutable(): String {
         return globalOptions.executableFile.orNull?.asFile?.absolutePath
             ?: systemCliIfInstalled()
-            ?: EmbeddedCliExtractor.embeddedCliPath
+            ?: embeddedCli()
     }
 
     private fun systemCliIfInstalled(): String? {
@@ -62,5 +64,50 @@ internal abstract class BugsnagCliTask : DefaultTask() {
         } catch (ex: Exception) {
             null
         }
+    }
+
+    private fun embeddedCli(): String {
+        val suffix =
+            ".exe".takeIf { System.getProperty("os.name").contains("win", ignoreCase = true) } ?: ""
+        val tmpFile = File.createTempFile("bugsnag-cli", suffix)
+
+        extractPlatformExecutable(tmpFile)
+
+        return tmpFile.absolutePath
+    }
+
+    private fun extractPlatformExecutable(destination: File) {
+        val resourceName = getCliResourceName(
+            System.getProperty("os.name").lowercase(),
+            System.getProperty("os.arch").lowercase()
+        )
+
+        destination.outputStream().buffered().use { output ->
+            BugsnagCliTask::class.java.getResourceAsStream(resourceName).use { it!!.copyTo(output) }
+        }
+
+        destination.setExecutable(true, true)
+    }
+
+    private fun getCliResourceName(osName: String, archName: String): String {
+        val os = when {
+            osName.contains("mac") -> "macos"
+            osName.contains("linux") -> "linux"
+            osName.contains("win") -> "windows"
+            else -> throw StopExecutionException("Unsupported OS: $osName")
+        }
+
+        val arch = when (archName) {
+            "amd64" -> "x86_64"
+            "aarch64" -> "arm64"
+            else -> archName
+        }
+
+        val suffix = when {
+            osName.contains("win") -> ".exe"
+            else -> ""
+        }
+
+        return "/$arch-$os-bugsnag-cli$suffix"
     }
 }
