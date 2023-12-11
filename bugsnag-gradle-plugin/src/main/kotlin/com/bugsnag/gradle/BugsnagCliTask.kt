@@ -42,6 +42,7 @@ internal abstract class BugsnagCliTask : DefaultTask() {
                 it.commandLine(executable)
                 spec(it)
             }
+            .assertNormalExitValue()
     }
 
     private fun getCliExecutable(): String {
@@ -67,7 +68,8 @@ internal abstract class BugsnagCliTask : DefaultTask() {
     }
 
     private fun embeddedCli(): String {
-        val suffix = ".exe".takeIf { System.getProperty("os.name").contains("win", ignoreCase = true) } ?: ""
+        val suffix =
+            ".exe".takeIf { System.getProperty("os.name").contains("win", ignoreCase = true) } ?: ""
         val tmpFile = File.createTempFile("bugsnag-cli", suffix)
 
         extractPlatformExecutable(tmpFile)

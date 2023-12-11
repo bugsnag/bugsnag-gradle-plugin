@@ -14,3 +14,7 @@ end
 When('I build the {word} bundle') do |variant|
   Maze::Runner.run_command("features/scripts/bundle.sh #{variant.capitalize}")
 end
+
+When('I upload the {word} native symbols') do |variant|
+  Maze::Runner.run_command("features/scripts/ndk_app.sh #{variant.capitalize}")
+end
