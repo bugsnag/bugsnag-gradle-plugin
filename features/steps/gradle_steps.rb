@@ -18,3 +18,7 @@ end
 When('I upload the {word} mapping.txt') do |variant|
   Maze::Runner.run_command("features/scripts/assemble_only.sh #{variant.capitalize}")
 end
+
+When('I upload the {word} native symbols') do |variant|
+  Maze::Runner.run_command("features/scripts/ndk_app.sh #{variant.capitalize}")
+end
