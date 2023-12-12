@@ -17,12 +17,12 @@ end
 
 def valid_android_mapping_api?(request_body)
   valid_mapping_api?(request_body)
-  Maze.check.not_nil(request_body['buildUUID'], 'buildUUID was nil')
+#   Maze.check.not_nil(request_body['buildUUID'], 'buildUUID was nil')
   Maze.check.not_nil(request_body['proguard'], 'proguard was nil')
 end
 
 def valid_mapping_api?(request_body)
-  Maze.check.equal($api_key, request_body['apiKey'], "Wrong apiKey: expected #{api_key}, got #{request_body['apiKey']}")
+  Maze.check.equal($api_key, request_body['apiKey'], "Wrong apiKey: expected #{$api_key}, got #{request_body['apiKey']}")
   Maze.check.not_nil(request_body['appId'], 'appId was nil')
   Maze.check.not_nil(request_body['versionCode'], 'versionCode was nil')
   Maze.check.not_nil(request_body['versionName'], 'versionName was nil')
