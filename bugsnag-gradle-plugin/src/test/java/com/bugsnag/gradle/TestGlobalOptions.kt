@@ -23,4 +23,7 @@ internal class TestGlobalOptions : GlobalOptions, PropertyHost by PropertyHost.N
         DefaultProperty(this, java.lang.Integer::class.java) as Property<Int>
     override val retries: Property<Int> =
         DefaultProperty(this, java.lang.Integer::class.java) as Property<Int>
+    override val uploadApiEndpointRootUrl: Property<String> = DefaultProperty(this, String::class.java)
+    override val buildApiEndpointRootUrl: Property<String> = DefaultProperty(this, String::class.java)
+    override val port: Property<Int> = DefaultProperty(this, java.lang.Integer::class.java) as Property<Int>
 }

@@ -48,7 +48,7 @@ class GradlePlugin : Plugin<Project> {
 
     private fun configureUploadBundleTask(bugsnag: BugsnagExtension, variant: AndroidVariant) =
         Action<UploadBundleTask> { task ->
-            configureAndroidTask(task, bugsnag, variant)
+            configureBugsnagCliTask(task, bugsnag)
             task.bundleFile.set(variant.bundleFile)
 
             // make sure that the bundle is actually built first
@@ -56,8 +56,12 @@ class GradlePlugin : Plugin<Project> {
         }
 
     private fun configureAndroidTask(task: AbstractAndroidTask, bugsnag: BugsnagExtension, variant: AndroidVariant) {
+        configureBugsnagCliTask(task, bugsnag)
+        task.androidOptions.from(variant)
+    }
+
+    private fun configureBugsnagCliTask(task: BugsnagCliTask, bugsnag: BugsnagExtension) {
         task.group = TASK_GROUP
         task.globalOptions.from(bugsnag)
-        task.androidOptions.from(variant)
     }
 }
