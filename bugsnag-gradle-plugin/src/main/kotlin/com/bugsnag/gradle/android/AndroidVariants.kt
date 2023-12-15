@@ -5,6 +5,7 @@ import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.api.variant.CanMinifyCode
 import com.android.build.api.variant.Variant
+import com.bugsnag.gradle.capitalise
 import com.bugsnag.gradle.toTaskName
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
@@ -22,6 +23,7 @@ data class AndroidVariant(
      * not enabled for this variant.
      */
     val obfuscationMappingFile: Provider<RegularFile>?,
+    val dexFile: Provider<RegularFile>?,
 ) {
     val bundleTaskName: String
         get() = name.toTaskName(prefix = "bundle")
@@ -53,6 +55,7 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                 variant.artifacts
                     .get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
                     .takeIf { isMinifyEnabledFor(variant) },
+                getDexFile(variant)
             )
         )
     }
@@ -68,3 +71,12 @@ private fun Project.getNativeSymbolDirs(variant: Variant): Provider<List<Directo
         // we make sure that the "native_symbol_tables" dir is included in the list:
         .zip(project.layout.buildDirectory) { list, buildDir -> list + buildDir.dir("intermediates/native_symbol_tables/${variant.name}") }
 }
+
+private fun Project.getDexFile(variant: Variant): Provider<RegularFile> {
+    return if (isMinifyEnabledFor(variant)){
+        layout.buildDirectory.file("intermediates/dex/${variant.name}/minify${variant.name.capitalise()}WithR8/classes.dex")
+    }else{
+        layout.buildDirectory.file("intermediates/dex/${variant.name}/mergExtDex${variant.name.capitalise()}/classes.dex")
+    }
+}
+
