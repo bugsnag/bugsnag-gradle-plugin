@@ -20,9 +20,5 @@ When('I upload the {word} mapping.txt') do |variant|
 end
 
 When('I upload the {word} native symbols') do |variant|
-  Maze::Runner.run_command("features/scripts/ndk_app.sh #{variant.capitalize}")
-end
-
-When('I upload the {word} native symbols') do |variant|
-  Maze::Runner.run_command("features/scripts/ndk_app.sh #{variant.capitalize}")
+  Maze::Runner.run_command("features/scripts/native_symbols.sh #{variant.capitalize}")
 end
