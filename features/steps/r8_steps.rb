@@ -17,7 +17,7 @@ end
 
 def valid_android_mapping_api?(request_body)
   valid_mapping_api?(request_body)
-#   Maze.check.not_nil(request_body['buildUUID'], 'buildUUID was nil')
+  Maze.check.not_nil(request_body['buildUUID'], 'buildUUID was nil')
   Maze.check.not_nil(request_body['proguard'], 'proguard was nil')
 end
 

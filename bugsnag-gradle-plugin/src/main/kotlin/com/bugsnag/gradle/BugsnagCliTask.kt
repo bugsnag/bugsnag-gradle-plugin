@@ -2,12 +2,10 @@ package com.bugsnag.gradle
 
 import com.bugsnag.gradle.util.NullOutputStream
 import org.gradle.api.DefaultTask
-import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.Nested
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecSpec
 import java.io.ByteArrayOutputStream
-import java.io.File
 import javax.inject.Inject
 
 private const val CLI_LOG_INFO = "[INFO] "
@@ -38,6 +36,31 @@ internal abstract class BugsnagCliTask : DefaultTask() {
             globalOptions.addToUploadExecSpec(it)
             it.args(*args)
         }
+    }
+
+    protected open fun execForOutput(spec: (ExecSpec) -> Unit): String {
+        val stdout = ByteArrayOutputStream()
+        val stderr = ByteArrayOutputStream()
+        val result = execOperations
+            .exec {
+                it.commandLine(executable)
+                spec(it)
+
+                it.standardOutput = stdout
+                it.errorOutput = stderr
+                it.isIgnoreExitValue = true
+            }
+        if (result.exitValue != 0) {
+            throw BugsnagCliException(
+                extractErrorMessage(
+                    stdout.takeIf { it.size() > 0 }?.toByteArray()
+                        ?: stderr.toByteArray()
+                )
+            )
+        } else if (stdout.size() > 0) {
+            relayCliLogging(stdout.toByteArray())
+        }
+        return stdout.toString("UTF-8")
     }
 
     protected open fun exec(spec: (ExecSpec) -> Unit) {

@@ -59,6 +59,8 @@ open class BugsnagExtension {
 
     var buildApiEndpointRootUrl: String? = null
 
+    var buildId: String? = null
+
     @Deprecated("replaced by uploadApiEndpointRootUrl", replaceWith = ReplaceWith("uploadApiEndpointRootUrl"))
     var endpoint: String? by ::uploadApiEndpointRootUrl
 
