@@ -9,6 +9,7 @@ public class FixtureActivity extends Activity {
         super.onCreate(savedInstanceState);
         logger = new Logger("FixtureActivity");
         logger.info("onCreate()");
+        logger.info(stringFromJNI());
     }
 
     public void onStart() {
@@ -20,4 +21,7 @@ public class FixtureActivity extends Activity {
         super.onStop();
         logger.info("onStop()");
     }
+
+    public native String stringFromJNI();
 }
+
