@@ -28,7 +28,7 @@ internal abstract class UploadMappingTask : AbstractAndroidTask() {
         if (id == null) {
             id = execForOutput {
                 it.args("create-android-build-id", dexFile.get().asFile.absolutePath)
-            }
+            }.trim()
         }
         execUpload(
             "android-proguard",

@@ -46,4 +46,5 @@ android {
 bugsnag {
     uploadApiEndpointRootUrl = "http://localhost:9339/builds"
     buildApiEndpointRootUrl = "http://localhost:9339/builds"
+    System.getenv("BUILD_UUID")?.let { buildId = it }
 }

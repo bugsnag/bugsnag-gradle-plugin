@@ -73,10 +73,10 @@ private fun Project.getNativeSymbolDirs(variant: Variant): Provider<List<Directo
 }
 
 private fun Project.getDexFile(variant: Variant): Provider<RegularFile> {
-    return if (isMinifyEnabledFor(variant)){
+    return if (isMinifyEnabledFor(variant)) {
         layout.buildDirectory.file("intermediates/dex/${variant.name}/minify${variant.name.capitalise()}WithR8/classes.dex")
-    }else{
-        layout.buildDirectory.file("intermediates/dex/${variant.name}/mergExtDex${variant.name.capitalise()}/classes.dex")
+    } else {
+        layout.buildDirectory.file("intermediates/dex/${variant.name}/mergeExtDex${variant.name.capitalise()}/classes.dex")
     }
 }
 
