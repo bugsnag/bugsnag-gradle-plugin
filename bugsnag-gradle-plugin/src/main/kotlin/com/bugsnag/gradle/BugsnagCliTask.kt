@@ -2,11 +2,17 @@ package com.bugsnag.gradle
 
 import com.bugsnag.gradle.util.NullOutputStream
 import org.gradle.api.DefaultTask
+import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.Nested
 import org.gradle.process.ExecOperations
-import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
+import java.io.ByteArrayOutputStream
+import java.io.File
 import javax.inject.Inject
+
+private const val CLI_LOG_INFO = "[INFO] "
+private const val CLI_LOG_WARN = "[WARN] "
+private const val CLI_LOG_ERROR = "[ERROR]"
 
 internal abstract class BugsnagCliTask : DefaultTask() {
     @get:Inject
@@ -22,7 +28,7 @@ internal abstract class BugsnagCliTask : DefaultTask() {
             it.commandLine(executable)
             globalOptions.addToExecSpec(it)
             it.args(*args)
-        }.assertNormalExitValue()
+        }
     }
 
     protected open fun execUpload(uploadType: String, vararg args: String) {
@@ -31,14 +37,57 @@ internal abstract class BugsnagCliTask : DefaultTask() {
             it.args("upload", uploadType)
             globalOptions.addToUploadExecSpec(it)
             it.args(*args)
-        }.assertNormalExitValue()
+        }
     }
 
-    protected open fun exec(spec: (ExecSpec) -> Unit): ExecResult {
-        return execOperations
+    protected open fun exec(spec: (ExecSpec) -> Unit) {
+        val stdout = ByteArrayOutputStream()
+        val stderr = ByteArrayOutputStream()
+        val result = execOperations
             .exec {
                 it.commandLine(executable)
                 spec(it)
+
+                it.standardOutput = stdout
+                it.errorOutput = stderr
+                it.isIgnoreExitValue = true
+            }
+
+        if (result.exitValue != 0) {
+            throw BugsnagCliException(
+                extractErrorMessage(
+                    stdout.takeIf { it.size() > 0 }?.toByteArray()
+                        ?: stderr.toByteArray()
+                )
+            )
+        } else if (stdout.size() > 0) {
+            relayCliLogging(stdout.toByteArray())
+        }
+    }
+
+    private fun extractErrorMessage(bytes: ByteArray): String {
+        return bytes
+            .inputStream()
+            .reader()
+            .useLines { lines ->
+                lines.filter { it.startsWith(CLI_LOG_ERROR) || it.contains("error:") }
+                    .map { it.removePrefix(CLI_LOG_ERROR).substringAfter("error: ").trim() }
+                    .joinToString("\n")
+            }
+    }
+
+    private fun relayCliLogging(bytes: ByteArray) {
+        bytes
+            .inputStream()
+            .reader()
+            .forEachLine { line ->
+                if (line.startsWith(CLI_LOG_INFO)) {
+                    logger.info(line.substring(CLI_LOG_INFO.length))
+                } else if (line.startsWith(CLI_LOG_WARN)) {
+                    logger.warn(line.substring(CLI_LOG_WARN.length))
+                } else if (line.startsWith(CLI_LOG_ERROR)) {
+                    logger.error(line.substring(CLI_LOG_ERROR.length))
+                }
             }
     }
 
