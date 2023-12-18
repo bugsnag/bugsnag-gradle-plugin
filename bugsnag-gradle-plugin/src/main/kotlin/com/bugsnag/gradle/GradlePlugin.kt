@@ -21,7 +21,7 @@ class GradlePlugin : Plugin<Project> {
             target.tasks.register(
                 variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "Bundle"),
                 UploadBundleTask::class.java,
-                configureUploadBundleTask(bugsnag, variant)
+                configureUploadBundleTask(target, bugsnag, variant)
             )
 
             if (variant.obfuscationMappingFile != null) {
@@ -43,15 +43,21 @@ class GradlePlugin : Plugin<Project> {
                 ) { task ->
                     configureAndroidTask(task, bugsnag, variant)
                     task.symbolFiles.from(variant.nativeSymbols)
+
+                    val projectRoot = bugsnag.projectRoot ?: target.rootDir.toString()
+                    task.projectRoot.set(projectRoot)
                 }.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
             }
         }
     }
 
-    private fun configureUploadBundleTask(bugsnag: BugsnagExtension, variant: AndroidVariant) =
+    private fun configureUploadBundleTask(target: Project, bugsnag: BugsnagExtension, variant: AndroidVariant) =
         Action<UploadBundleTask> { task ->
             configureBugsnagCliTask(task, bugsnag)
             task.bundleFile.set(variant.bundleFile)
+
+            val projectRoot = bugsnag.projectRoot ?: target.rootDir.toString()
+            task.projectRoot.set(projectRoot)
 
             // make sure that the bundle is actually built first
             task.dependsOn(variant.bundleTaskName)
