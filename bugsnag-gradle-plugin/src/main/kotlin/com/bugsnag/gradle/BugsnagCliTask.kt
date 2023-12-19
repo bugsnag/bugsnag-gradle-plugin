@@ -1,6 +1,5 @@
 package com.bugsnag.gradle
 
-import com.bugsnag.gradle.util.NullOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Nested
 import org.gradle.process.ExecOperations
@@ -11,7 +10,9 @@ import javax.inject.Inject
 
 private const val CLI_LOG_INFO = "[INFO] "
 private const val CLI_LOG_WARN = "[WARN] "
-private const val CLI_LOG_ERROR = "[ERROR]"
+private const val CLI_LOG_ERROR = "[ERROR] "
+
+internal const val SYSTEM_CLI_FILE = "\$PATH/bugsnag-cli"
 
 internal abstract class BugsnagCliTask : DefaultTask() {
     @get:Inject
@@ -20,11 +21,9 @@ internal abstract class BugsnagCliTask : DefaultTask() {
     @get:Nested
     abstract val globalOptions: GlobalOptions
 
-    private val executable: String = getCliExecutable()
-
     protected open fun exec(vararg args: String) {
         exec {
-            it.commandLine(executable)
+            it.executable(globalOptions.executableFile.get())
             globalOptions.addToExecSpec(it)
             it.args(*args)
         }
@@ -32,7 +31,7 @@ internal abstract class BugsnagCliTask : DefaultTask() {
 
     protected open fun execUpload(uploadType: String, vararg args: String) {
         exec {
-            it.commandLine(executable)
+            it.executable(globalOptions.executableFile.get())
             it.args("upload", uploadType)
             globalOptions.addToUploadExecSpec(it)
             it.args(*args)
@@ -78,7 +77,7 @@ internal abstract class BugsnagCliTask : DefaultTask() {
     ): ExecResult? {
         val result = execOperations
             .exec {
-                it.commandLine(executable)
+                it.executable(globalOptions.executableFile.get())
                 spec(it)
 
                 it.standardOutput = stdout
@@ -112,27 +111,5 @@ internal abstract class BugsnagCliTask : DefaultTask() {
                     logger.error(line.substring(CLI_LOG_ERROR.length))
                 }
             }
-    }
-
-    private fun getCliExecutable(): String {
-        return globalOptions.executableFile.orNull?.asFile?.absolutePath
-            ?: systemCliIfInstalled()
-            ?: EmbeddedCliExtractor.embeddedCliPath
-    }
-
-    private fun systemCliIfInstalled(): String? {
-        return try {
-            val exitValue = execOperations
-                .exec {
-                    it.standardOutput = NullOutputStream
-                    it.errorOutput = NullOutputStream
-                    it.commandLine("bugsnag-cli").args("--version")
-                }
-                .exitValue
-
-            "bugsnag-cli".takeIf { exitValue == 0 }
-        } catch (ex: Exception) {
-            null
-        }
     }
 }

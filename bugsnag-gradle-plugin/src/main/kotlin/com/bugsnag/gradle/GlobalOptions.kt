@@ -1,16 +1,15 @@
 package com.bugsnag.gradle
 
-import org.gradle.api.file.RegularFileProperty
+import com.bugsnag.gradle.util.NullOutputStream
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
+import org.gradle.process.ExecOperations
 import org.gradle.process.ExecSpec
 
 interface GlobalOptions {
-    @get:Optional
-    @get:InputFile
-    val executableFile: RegularFileProperty
+    @get:Input
+    val executableFile: Property<String>
 
     @get:Input
     @get:Optional
@@ -83,8 +82,9 @@ internal fun GlobalOptions.addToUploadExecSpec(execSpec: ExecSpec) {
     }
 }
 
-internal fun GlobalOptions.from(extension: BugsnagExtension) {
-    extension.cliPath?.let { executableFile.set(it) }
+internal fun GlobalOptions.configureFrom(extension: BugsnagExtension, execOperations: ExecOperations) {
+    executableFile.set(extension.getCliExecutable(execOperations))
+
     extension.timeout?.let { timeout.set(it) }
     extension.retries?.let { retries.set(it) }
     extension.apiKey?.let { apiKey.set(it) }
@@ -92,4 +92,30 @@ internal fun GlobalOptions.from(extension: BugsnagExtension) {
     extension.buildApiEndpointRootUrl?.let { buildApiEndpointRootUrl.set(it) }
     failOnUploadError.set(extension.failOnUploadError)
     overwrite.set(extension.overwrite)
+}
+
+private fun BugsnagExtension.getCliExecutable(execOperations: ExecOperations): String {
+    if (cliPath == SYSTEM_CLI_FILE) {
+        return systemCliIfInstalled(execOperations)
+            ?: throw BugsnagCliException("systemCli was specified, but no bugsnag-cli was not found on your path. See https://docs.bugsnag.com/build-integrations/bugsnag-cli/#installation for installation instructions.")
+    }
+
+    return cliPath ?: EmbeddedCliExtractor.embeddedCliPath
+}
+
+private fun systemCliIfInstalled(execOperations: ExecOperations): String? {
+    return try {
+        val exitValue = execOperations
+            .exec {
+                it.standardOutput = NullOutputStream
+                it.errorOutput = NullOutputStream
+                it.isIgnoreExitValue = true
+                it.commandLine("bugsnag-cli", "--version")
+            }
+            .exitValue
+
+        "bugsnag-cli".takeIf { exitValue == 0 }
+    } catch (ex: Exception) {
+        null
+    }
 }

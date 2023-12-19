@@ -42,7 +42,7 @@ class GlobalOptionsTest {
     @Test
     fun testFromExtension() {
         val options = TestGlobalOptions()
-        options.from(BugsnagExtension().apply {
+        options.configureFrom(BugsnagExtension().apply {
             cliPath = File("/hello-bugsnag-cli")
             failOnUploadError = false
             overwrite = true
