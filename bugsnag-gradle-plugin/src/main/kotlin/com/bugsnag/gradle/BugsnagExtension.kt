@@ -1,8 +1,12 @@
 package com.bugsnag.gradle
 
+import org.gradle.api.model.ObjectFactory
 import java.io.File
+import javax.inject.Inject
 
-open class BugsnagExtension {
+open class BugsnagExtension @Inject constructor(
+    objects: ObjectFactory
+) {
     /**
      * Whether the Bugsnag Plugin is enabled, setting this to `false` will deactivate the plugin completely.
      *
@@ -66,4 +70,12 @@ open class BugsnagExtension {
 
     @Deprecated("replaced by buildApiEndpointRootUrl", replaceWith = ReplaceWith("buildApiEndpointRootUrl"))
     var releasesEndpoint: String? by ::buildApiEndpointRootUrl
+
+    /**
+     * The project root to trim from the beginning of the native symbol filenames. This directly corresponds to the
+     * `--project-root` option on `bugsnag-cli upload android-ndk` and `bugsnag-cli upload android-aab`.
+     *
+     * Defaults to the Gradle root-project directory
+     */
+    var projectRoot: String? = null
 }
