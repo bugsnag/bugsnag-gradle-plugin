@@ -5,11 +5,15 @@ import com.bugsnag.gradle.android.*
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.process.ExecOperations
+import javax.inject.Inject
 
 internal const val TASK_GROUP = "BugSnag"
 internal const val UPLOAD_TASK_PREFIX = "bugsnagUpload"
 
-class GradlePlugin : Plugin<Project> {
+class GradlePlugin @Inject constructor(
+    private val execOperations: ExecOperations,
+) : Plugin<Project> {
     override fun apply(target: Project) {
         val bugsnag = target.extensions.create("bugsnag", BugsnagExtension::class.java)
 
@@ -70,6 +74,6 @@ class GradlePlugin : Plugin<Project> {
 
     private fun configureBugsnagCliTask(task: BugsnagCliTask, bugsnag: BugsnagExtension) {
         task.group = TASK_GROUP
-        task.globalOptions.from(bugsnag)
+        task.globalOptions.configureFrom(bugsnag, execOperations)
     }
 }

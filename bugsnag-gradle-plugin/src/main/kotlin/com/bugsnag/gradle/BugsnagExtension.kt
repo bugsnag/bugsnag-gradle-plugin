@@ -45,12 +45,12 @@ open class BugsnagExtension @Inject constructor(
 
     /**
      * Optionally the path of the `bugsnag-cli` executable, if not specified then the plugin will attempt to
-     * locate a system-wide `bugsnag-cli` installation and if that is not found it will fall back to the packaged CLI
-     * tool.
+     * use the packaged CLI tool. If you have a system-wide `bugsnag-cli` installed you can set this to [systemCli]
+     * to use it.
      *
      * Defaults to `null`
      */
-    var cliPath: File? = null
+    var cliPath: String? = null
 
     /**
      * Optionally override the detected apiKey.
@@ -78,4 +78,10 @@ open class BugsnagExtension @Inject constructor(
      * Defaults to the Gradle root-project directory
      */
     var projectRoot: String? = null
+
+    /**
+     * When [cliPath] is set to `systemCli` then the system-wide `bugsnag-cli` will be used (whatever is on your
+     * `PATH` environment variable).
+     */
+    fun systemCli(): String = SYSTEM_CLI_FILE
 }
