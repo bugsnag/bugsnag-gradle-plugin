@@ -31,6 +31,8 @@ class GradlePlugin : Plugin<Project> {
                 ) { task ->
                     configureAndroidTask(task, bugsnag, variant)
                     task.mappingFile.set(variant.obfuscationMappingFile)
+                    task.dexFile.set(variant.dexFile)
+                    bugsnag.buildId?.let { task.buildId.set(it) }
                 }
             }
 

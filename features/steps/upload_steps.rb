@@ -1,7 +1,7 @@
 require 'zlib'
 require 'stringio'
 
-Then('{int} request(s) have/has an R8 mapping file with the following symbols:') do |request_count, data_table|
+Then('{int} request(s) has/have an R8 mapping file with the following symbols:') do |request_count, data_table|
   requests = get_requests_with_field('build', 'proguard')
   Maze.check.equal(request_count, requests.length, "Wrong number of mapping API requests: expected #{request_count}, got #{requests.length}")
 
@@ -12,6 +12,16 @@ Then('{int} request(s) have/has an R8 mapping file with the following symbols:')
     archive = Zlib::GzipReader.new(StringIO.new(gzipped_part))
     mapping_file_lines = archive.read.split("\n")
     valid_r8_mapping_contents?(mapping_file_lines, data_table.rows)
+  end
+end
+
+Then('{int} request(s) is/are valid for the android assemble file and match the following:') do |request_count, data_table|
+    requests = get_requests_with_field('build', 'proguard')
+    Maze.check.equal(request_count, requests.length, "Wrong number of mapping API requests: expected #{request_count}, got #{requests.length}")
+
+  requests.each do |request|
+    valid_android_mapping_api?(request[:body])
+    Maze::Assertions::RequestSetAssertions.assert_requests_match requests, data_table
   end
 end
 
@@ -27,7 +37,7 @@ end
 
 def valid_android_mapping_api?(request_body)
   valid_mapping_api?(request_body)
-#   Maze.check.not_nil(request_body['buildUUID'], 'buildUUID was nil')
+  Maze.check.not_nil(request_body['buildUUID'], 'buildUUID was nil')
   Maze.check.not_nil(request_body['proguard'], 'proguard was nil')
 end
 

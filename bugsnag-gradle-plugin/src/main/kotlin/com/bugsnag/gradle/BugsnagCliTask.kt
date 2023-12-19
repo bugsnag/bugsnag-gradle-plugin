@@ -2,12 +2,11 @@ package com.bugsnag.gradle
 
 import com.bugsnag.gradle.util.NullOutputStream
 import org.gradle.api.DefaultTask
-import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.Nested
 import org.gradle.process.ExecOperations
+import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import java.io.ByteArrayOutputStream
-import java.io.File
 import javax.inject.Inject
 
 private const val CLI_LOG_INFO = "[INFO] "
@@ -40,20 +39,27 @@ internal abstract class BugsnagCliTask : DefaultTask() {
         }
     }
 
+    protected open fun execForOutput(spec: (ExecSpec) -> Unit): String {
+        val stdout = ByteArrayOutputStream()
+        val stderr = ByteArrayOutputStream()
+        val result = execResult(spec, stdout, stderr)
+        execResultCheck(result, stdout, stderr)
+        return stdout.toString("UTF-8")
+    }
+
     protected open fun exec(spec: (ExecSpec) -> Unit) {
         val stdout = ByteArrayOutputStream()
         val stderr = ByteArrayOutputStream()
-        val result = execOperations
-            .exec {
-                it.commandLine(executable)
-                spec(it)
+        val result = execResult(spec, stdout, stderr)
+        execResultCheck(result, stdout, stderr)
+    }
 
-                it.standardOutput = stdout
-                it.errorOutput = stderr
-                it.isIgnoreExitValue = true
-            }
-
-        if (result.exitValue != 0) {
+    private fun execResultCheck(
+        result: ExecResult?,
+        stdout: ByteArrayOutputStream,
+        stderr: ByteArrayOutputStream
+    ) {
+        if (result?.exitValue != 0) {
             throw BugsnagCliException(
                 extractErrorMessage(
                     stdout.takeIf { it.size() > 0 }?.toByteArray()
@@ -63,6 +69,23 @@ internal abstract class BugsnagCliTask : DefaultTask() {
         } else if (stdout.size() > 0) {
             relayCliLogging(stdout.toByteArray())
         }
+    }
+
+    private fun execResult(
+        spec: (ExecSpec) -> Unit,
+        stdout: ByteArrayOutputStream,
+        stderr: ByteArrayOutputStream
+    ): ExecResult? {
+        val result = execOperations
+            .exec {
+                it.commandLine(executable)
+                spec(it)
+
+                it.standardOutput = stdout
+                it.errorOutput = stderr
+                it.isIgnoreExitValue = true
+            }
+        return result
     }
 
     private fun extractErrorMessage(bytes: ByteArray): String {

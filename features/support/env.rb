@@ -14,6 +14,7 @@ Before do
   ENV.delete 'AGP_VERSION'
   ENV.delete 'APP_VERSION_CODE'
   ENV.delete 'APP_VERSION_NAME'
+  ENV.delete 'BUILD_UUID'
 end
 
 Before('@skip') do |scenario|
