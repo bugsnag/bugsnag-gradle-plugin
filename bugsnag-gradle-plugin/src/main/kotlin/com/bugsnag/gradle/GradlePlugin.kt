@@ -27,11 +27,11 @@ class GradlePlugin @Inject constructor(
                 UploadBundleTask::class.java,
                 configureUploadBundleTask(target, bugsnag, variant)
             )
+
             target.tasks.register(
                 variant.name.toTaskName(prefix = CREATE_BUILD_TASK_PREFIX, suffix = "Build"),
                 CreateBuildTask::class.java,
-            configureCreateBuildTask(bugsnag, variant)
-
+                configureCreateBuildTask(target, bugsnag, variant)
             )
 
             if (variant.obfuscationMappingFile != null) {
@@ -41,7 +41,7 @@ class GradlePlugin @Inject constructor(
                 ) { task ->
                     configureAndroidTask(task, bugsnag, variant)
                     task.mappingFile.set(variant.obfuscationMappingFile)
-                    task.dexFile.set(variant.dexFile)
+                    variant.dexFile?.let { task.dexFile.set(it) }
                     bugsnag.buildId?.let { task.buildId.set(it) }
                 }
             }
@@ -63,13 +63,15 @@ class GradlePlugin @Inject constructor(
         }
     }
 
-    private fun configureCreateBuildTask(bugsnag: BugsnagExtension, variant: AndroidVariant) =
+    private fun configureCreateBuildTask(target: Project, bugsnag: BugsnagExtension, variant: AndroidVariant) =
         Action<CreateBuildTask> { task ->
             task.group = TASK_GROUP
             task.globalOptions.configureFrom(bugsnag, execOperations)
-            task.versionName.set(variant.versionName)
-            task.versionCode.set(variant.versionCode)
-            task.projectRoot.set(task.project.projectDir)
+            task.systemMetadata.configureFrom(target, bugsnag)
+            task.metadata.set(bugsnag.metadata)
+            task.variantMetadata.configureFrom(variant)
+            task.androidManifestFile.set(variant.manifestFile)
+            task.projectPath.set(task.project.projectDir.toString())
         }
 
     private fun configureUploadBundleTask(target: Project, bugsnag: BugsnagExtension, variant: AndroidVariant) =
