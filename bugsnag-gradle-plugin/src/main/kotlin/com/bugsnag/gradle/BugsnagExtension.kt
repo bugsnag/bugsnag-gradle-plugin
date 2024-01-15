@@ -1,11 +1,15 @@
 package com.bugsnag.gradle
 
 import org.gradle.api.model.ObjectFactory
-import java.io.File
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.ProviderFactory
 import javax.inject.Inject
 
+private const val SYSTEM_PROP_USER_NAME = "user.name"
+
 open class BugsnagExtension @Inject constructor(
-    objects: ObjectFactory
+    objects: ObjectFactory,
+    providerFactory: ProviderFactory,
 ) {
     /**
      * Whether the Bugsnag Plugin is enabled, setting this to `false` will deactivate the plugin completely.
@@ -78,6 +82,16 @@ open class BugsnagExtension @Inject constructor(
      * Defaults to the Gradle root-project directory
      */
     var projectRoot: String? = null
+
+    /**
+     * Metadata to be included in builds / released on BugSnag. This will always include information gathered from
+     * the build environment: os name, version and architecture, builder name, Java and Gradle version, and
+     * source control information.
+     */
+    var metadata: MutableMap<String, String>? = LinkedHashMap()
+
+    var builderName: Property<String> = objects.property(String::class.java)
+        .convention(providerFactory.systemProperty(SYSTEM_PROP_USER_NAME))
 
     /**
      * When [cliPath] is set to `systemCli` then the system-wide `bugsnag-cli` will be used (whatever is on your
