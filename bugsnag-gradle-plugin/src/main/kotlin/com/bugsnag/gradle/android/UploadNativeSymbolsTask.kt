@@ -23,6 +23,8 @@ internal abstract class UploadNativeSymbolsTask : AbstractAndroidTask() {
                 "android-ndk",
                 "--project-root=${projectRoot.get()}",
                 "--variant=${androidVariantMetadata.variantName.get()}",
+                "--version-name=${androidVariantMetadata.versionName.get()}",
+                "--version-code=${androidVariantMetadata.versionCode.get()}",
                 symFile.absolutePath,
             )
         }

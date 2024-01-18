@@ -48,6 +48,7 @@ class GradlePlugin @Inject constructor(
                 ) { task ->
                     configureAndroidTask(task, bugsnag, variant)
                     task.mappingFile.set(variant.obfuscationMappingFile)
+                    task.androidVariantMetadata.configureFrom(variant)
                     variant.dexClassesDir?.let { task.dexClassesDir.set(it) }
                     bugsnag.buildId?.let { task.buildId.set(it) }
                 }
