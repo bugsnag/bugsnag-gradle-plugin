@@ -16,21 +16,19 @@ internal abstract class UploadMappingTask : AbstractAndroidTask() {
 
     @get:Input
     @get:Optional
-    abstract val buildId: Property<String>
+    abstract val buildUuid: Property<String>
 
     @get:Nested
     abstract val androidVariantMetadata: AndroidVariantMetadata
 
     @TaskAction
     fun uploadFile() {
-        execUpload(
-            "android-proguard",
-            if (buildId.isPresent) "--build-id=${buildId.get()}"
-            else "--dex-files=${dexClassesDir.get().asFile.absolutePath}",
-            "--variant=${androidVariantMetadata.variantName.get()}",
-            "--version-name=${androidVariantMetadata.versionName.get()}",
-            "--version-code=${androidVariantMetadata.versionCode.get()}",
-            mappingFile.get().asFile.absolutePath
-        )
+        execUpload("android-proguard", mappingFile.get().asFile.absolutePath) {
+            "build-uuid" `=` buildUuid
+            "dex-files" `=` dexClassesDir
+            "variant" `=` androidVariantMetadata.variantName
+            "version-name" `=` androidVariantMetadata.versionName
+            "version-code" `=` androidVariantMetadata.versionCode.map { it.toString() }
+        }
     }
 }

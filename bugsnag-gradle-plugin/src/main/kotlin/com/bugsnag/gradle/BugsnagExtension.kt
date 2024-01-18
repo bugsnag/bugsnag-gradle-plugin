@@ -63,11 +63,28 @@ open class BugsnagExtension @Inject constructor(
      */
     var apiKey: String? = null
 
+    var buildUuid: String? = null
+
+    /**
+     * Alias for [buildUuid]
+     */
+    var buildUUID: String? by ::buildUuid
+
+    /**
+     * Optionally override the detected versionName. This is useful if you also override `Configuration.appVersion`.
+     * @see [Configuration.appVersion](https://docs.bugsnag.com/platforms/android/configuration-options/#appversion)
+     */
+    var versionNameOverride: String? = null
+
+    /**
+     * Optionally override the detected versionCode. This is useful if you also override `Configuration.versionCode`.
+     * @see [Configuration.versionCode](https://docs.bugsnag.com/platforms/android/configuration-options/#versioncode)
+     */
+    var versionCodeOverride: Int? = null
+
     var uploadApiEndpointRootUrl: String? = null
 
     var buildApiEndpointRootUrl: String? = null
-
-    var buildId: String? = null
 
     @Deprecated("replaced by uploadApiEndpointRootUrl", replaceWith = ReplaceWith("uploadApiEndpointRootUrl"))
     var endpoint: String? by ::uploadApiEndpointRootUrl
@@ -82,6 +99,11 @@ open class BugsnagExtension @Inject constructor(
      * Defaults to the Gradle root-project directory
      */
     var projectRoot: String? = null
+
+    /**
+     * Path to Android NDK installation ($ANDROID_NDK_ROOT is used if this is not set).
+     */
+    var ndkRoot: String? = null
 
     /**
      * Metadata to be included in builds / released on BugSnag. This will always include information gathered from

@@ -25,6 +25,7 @@ data class AndroidVariant(
     val obfuscationMappingFile: Provider<RegularFile>?,
     val versionName: Provider<String?>?,
     val versionCode: Provider<Int?>?,
+    val applicationId: Provider<String?>?,
     val dexClassesDir: Provider<Directory>?,
 ) {
     val bundleTaskName: String
@@ -62,6 +63,7 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                                 .takeIf { isMinifyEnabledFor(variant) },
                             output.versionName,
                             output.versionCode,
+                            variant.applicationId,
                             getDexFiles(variant)
                         )
                     )
@@ -76,6 +78,7 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                         variant.artifacts
                             .get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
                             .takeIf { isMinifyEnabledFor(variant) },
+                        null,
                         null,
                         null,
                         getDexFiles(variant)
