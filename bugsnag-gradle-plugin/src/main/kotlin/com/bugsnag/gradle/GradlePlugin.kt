@@ -16,15 +16,19 @@ class GradlePlugin @Inject constructor(
 ) : Plugin<Project> {
     override fun apply(target: Project) {
         val bugsnag = target.extensions.create("bugsnag", BugsnagExtension::class.java)
-        target.afterEvaluate { configurePlugin(bugsnag, target) }
-    }
-
-    private fun configurePlugin(bugsnag: BugsnagExtension, target: Project) {
         if (!bugsnag.enabled) {
             return
         }
 
+        configurePlugin(bugsnag, target)
+    }
+
+    private fun configurePlugin(bugsnag: BugsnagExtension, target: Project) {
         target.onAndroidVariant { variant: AndroidVariant ->
+            if (!bugsnag.enabled) {
+                return@onAndroidVariant
+            }
+
             target.tasks.register(
                 variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "Bundle"),
                 UploadBundleTask::class.java,
