@@ -50,17 +50,9 @@ class GlobalOptionsTest {
     @Test
     fun testFromExtension() {
         val options = TestGlobalOptions()
-        val objects = mock(ObjectFactory::class.java)
-        val providerFactory = mock(ProviderFactory::class.java)
         val execOperations = mock(ExecOperations::class.java)
 
-        whenever(providerFactory.systemProperty(anyString()))
-            .thenAnswer { DefaultProperty(PropertyHost.NO_OP, String::class.java) }
-
-        whenever(objects.property(any(Class::class.java)))
-            .thenAnswer { DefaultProperty(PropertyHost.NO_OP, it.arguments.first() as Class<*>) }
-
-        val bugsnag = BugsnagExtension(objects, providerFactory).apply {
+        val bugsnag = BugsnagExtension().apply {
             cliPath = "/hello-bugsnag-cli"
             failOnUploadError = false
             overwrite = true

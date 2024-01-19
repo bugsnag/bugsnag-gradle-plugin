@@ -76,6 +76,7 @@ private const val PROP_OS_ARCH = "os.arch"
 private const val PROP_OS_NAME = "os.name"
 private const val PROP_OS_VERSION = "os.version"
 private const val PROP_JAVA_VERSION = "java.version"
+private const val PROP_USER_NAME = "user.name"
 
 internal fun CreateBuildTask.SystemMetadata.configureFrom(project: Project, bugsnag: BugsnagExtension) {
     val providerFactory = project.providers
@@ -85,7 +86,9 @@ internal fun CreateBuildTask.SystemMetadata.configureFrom(project: Project, bugs
     osVersion.set(providerFactory.systemProperty(PROP_OS_VERSION))
     javaVersion.set(providerFactory.systemProperty(PROP_JAVA_VERSION))
     gradleVersion.set(project.gradle.gradleVersion)
-    builderName.set(bugsnag.builderName)
+
+    builderName.convention(providerFactory.systemProperty(PROP_USER_NAME))
+    bugsnag.builderName?.let { builderName.set(it) }
 }
 
 internal fun CreateBuildTask.SystemMetadata.toMap(): Map<String, String?> =

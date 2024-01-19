@@ -22,3 +22,7 @@ end
 When('I upload the {word} native symbols') do |variant|
   Maze::Runner.run_command("features/scripts/native_symbols.sh #{variant.capitalize}")
 end
+
+When('I create the {word} build') do |variant|
+  Maze::Runner.run_command("features/scripts/create_build.sh #{variant.capitalize}")
+end

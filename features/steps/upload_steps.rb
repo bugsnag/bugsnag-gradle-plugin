@@ -16,8 +16,8 @@ Then('{int} request(s) has/have an R8 mapping file with the following symbols:')
 end
 
 Then('{int} request(s) is/are valid for the android assemble file and match the following:') do |request_count, data_table|
-    requests = get_requests_with_field('build', 'proguard')
-    Maze.check.equal(request_count, requests.length, "Wrong number of mapping API requests: expected #{request_count}, got #{requests.length}")
+  requests = get_requests_with_field('build', 'proguard')
+  Maze.check.equal(request_count, requests.length, "Wrong number of mapping API requests: expected #{request_count}, got #{requests.length}")
 
   requests.each do |request|
     valid_android_mapping_api?(request[:body])
@@ -33,6 +33,12 @@ Then('{int} requests are valid for the android NDK mapping API and match the fol
   requests.each do |request|
     valid_android_ndk_mapping_api?(request[:body])
   end
+end
+
+Then('{int} request(s) is a valid build and matches the following:') do |request_count, data_table|
+  requests = get_requests_with_field('build', 'builderName')
+  Maze.check.equal(request_count, requests.length, "Wrong number of build API requests: expected #{request_count}, got #{requests.length}")
+  Maze::Assertions::RequestSetAssertions.assert_requests_match requests, data_table
 end
 
 def valid_android_mapping_api?(request_body)

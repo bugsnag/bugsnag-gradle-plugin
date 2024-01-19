@@ -1,16 +1,6 @@
 package com.bugsnag.gradle
 
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.ProviderFactory
-import javax.inject.Inject
-
-private const val SYSTEM_PROP_USER_NAME = "user.name"
-
-open class BugsnagExtension @Inject constructor(
-    objects: ObjectFactory,
-    providerFactory: ProviderFactory,
-) {
+open class BugsnagExtension {
     /**
      * Whether the Bugsnag Plugin is enabled, setting this to `false` will deactivate the plugin completely.
      *
@@ -112,8 +102,7 @@ open class BugsnagExtension @Inject constructor(
      */
     var metadata: MutableMap<String, String>? = LinkedHashMap()
 
-    var builderName: Property<String> = objects.property(String::class.java)
-        .convention(providerFactory.systemProperty(SYSTEM_PROP_USER_NAME))
+    var builderName: String? = null
 
     /**
      * When [cliPath] is set to `systemCli` then the system-wide `bugsnag-cli` will be used (whatever is on your
