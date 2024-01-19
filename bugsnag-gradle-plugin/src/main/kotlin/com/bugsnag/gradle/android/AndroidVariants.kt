@@ -96,7 +96,7 @@ private fun Project.getNativeSymbolDirs(variant: Variant): Provider<List<Directo
         return null
     }
 
-    return project.layout.buildDirectory.map { listOf(it.dir("intermediates/native_symbol_tables/${variant.name}")) }
+    return project.layout.buildDirectory.map { listOf(it.dir("intermediates/merged_native_libs/${variant.name}/out/lib")) }
 }
 
 private fun Project.getDexFiles(variant: Variant): Provider<Directory> {

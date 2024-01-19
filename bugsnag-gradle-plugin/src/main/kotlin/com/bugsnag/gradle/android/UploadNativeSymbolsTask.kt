@@ -6,7 +6,9 @@ import org.gradle.api.tasks.*
 import org.gradle.api.tasks.util.PatternSet
 
 internal abstract class UploadNativeSymbolsTask : AbstractAndroidTask() {
-    private val symbolFilePattern = PatternSet().include("**/*.so.sym")
+    private val symbolFilePattern = PatternSet()
+        .include("**/*.so.sym")
+        .include("**/*.so")
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
