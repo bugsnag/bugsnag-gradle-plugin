@@ -6,11 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 
 internal abstract class CreateBuildTask : BugsnagCliTask() {
     @get:Optional
@@ -33,16 +29,16 @@ internal abstract class CreateBuildTask : BugsnagCliTask() {
     fun createBuild() {
         val buildMetadata = systemMetadata.toMap() + metadata.orElse(emptyMap()).get()
         val metadataOption = buildMetadata.entries.joinToString(";") { (key, value) -> "$key=$value" }
-        exec(
-            "create-build",
-            "--metadata=${metadataOption}",
-            "--app-manifest=${androidManifestFile.get()}",
-            "--builder-name=${systemMetadata.builderName.get()}",
-            "--release-stage=${variantMetadata.variantName.get()}",
-            "--version-name=${variantMetadata.versionName.get()}",
-            "--version-code=${variantMetadata.versionCode.get()}",
-            projectPath.get().toString()
-        )
+        exec("create-build") {
+            "metadata" `=` metadataOption
+            "app-manifest" `=` androidManifestFile
+            "builder-name" `=` systemMetadata.builderName
+            "release-stage" `=` variantMetadata.variantName
+            "version-name" `=` variantMetadata.versionName
+            "version-code" `=` variantMetadata.versionCode.map { it.toString() }
+
+            +projectPath.get().toString()
+        }
     }
 
     interface SystemMetadata {
@@ -80,6 +76,7 @@ private const val PROP_OS_ARCH = "os.arch"
 private const val PROP_OS_NAME = "os.name"
 private const val PROP_OS_VERSION = "os.version"
 private const val PROP_JAVA_VERSION = "java.version"
+private const val PROP_USER_NAME = "user.name"
 
 internal fun CreateBuildTask.SystemMetadata.configureFrom(project: Project, bugsnag: BugsnagExtension) {
     val providerFactory = project.providers
@@ -89,7 +86,9 @@ internal fun CreateBuildTask.SystemMetadata.configureFrom(project: Project, bugs
     osVersion.set(providerFactory.systemProperty(PROP_OS_VERSION))
     javaVersion.set(providerFactory.systemProperty(PROP_JAVA_VERSION))
     gradleVersion.set(project.gradle.gradleVersion)
-    builderName.set(bugsnag.builderName)
+
+    builderName.convention(providerFactory.systemProperty(PROP_USER_NAME))
+    bugsnag.builderName?.let { builderName.set(it) }
 }
 
 internal fun CreateBuildTask.SystemMetadata.toMap(): Map<String, String?> =

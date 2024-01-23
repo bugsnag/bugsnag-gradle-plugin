@@ -1,6 +1,5 @@
 package com.bugsnag.gradle.android
 
-import com.android.build.api.artifact.MultipleArtifact
 import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
@@ -26,7 +25,8 @@ data class AndroidVariant(
     val obfuscationMappingFile: Provider<RegularFile>?,
     val versionName: Provider<String?>?,
     val versionCode: Provider<Int?>?,
-    val dexFile: Provider<RegularFile>?,
+    val applicationId: Provider<String?>?,
+    val dexClassesDir: Provider<Directory>?,
 ) {
     val bundleTaskName: String
         get() = name.toTaskName(prefix = "bundle")
@@ -63,7 +63,8 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                                 .takeIf { isMinifyEnabledFor(variant) },
                             output.versionName,
                             output.versionCode,
-                            getDexFile(variant)
+                            variant.applicationId,
+                            getDexFiles(variant)
                         )
                     )
                 }
@@ -79,7 +80,8 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                             .takeIf { isMinifyEnabledFor(variant) },
                         null,
                         null,
-                        getDexFile(variant)
+                        null,
+                        getDexFiles(variant)
                     )
                 )
             }
@@ -94,17 +96,14 @@ private fun Project.getNativeSymbolDirs(variant: Variant): Provider<List<Directo
         return null
     }
 
-    return variant.artifacts.getAll(MultipleArtifact.NATIVE_SYMBOL_TABLES)
-        // At time of writing: AGP doesn't seem to populate NATIVE_SYMBOL_TABLES with anything useful, so
-        // we make sure that the "native_symbol_tables" dir is included in the list:
-        .zip(project.layout.buildDirectory) { list, buildDir -> list + buildDir.dir("intermediates/native_symbol_tables/${variant.name}") }
+    return project.layout.buildDirectory.map { listOf(it.dir("intermediates/merged_native_libs/${variant.name}/out/lib")) }
 }
 
-private fun Project.getDexFile(variant: Variant): Provider<RegularFile> {
+private fun Project.getDexFiles(variant: Variant): Provider<Directory> {
     return if (isMinifyEnabledFor(variant)) {
-        layout.buildDirectory.file("intermediates/dex/${variant.name}/minify${variant.name.capitalise()}WithR8/classes.dex")
+        layout.buildDirectory.dir("intermediates/dex/${variant.name}/minify${variant.name.capitalise()}WithR8/")
     } else {
-        layout.buildDirectory.file("intermediates/dex/${variant.name}/mergeExtDex${variant.name.capitalise()}/classes.dex")
+        layout.buildDirectory.dir("intermediates/dex/${variant.name}/mergeExtDex${variant.name.capitalise()}/")
     }
 }
 

@@ -1,9 +1,9 @@
 package com.bugsnag.gradle.android
 
+import com.bugsnag.gradle.BugsnagCliTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Optional
-import org.gradle.process.ExecSpec
 
 interface AndroidOptions {
     @get:Optional
@@ -11,9 +11,9 @@ interface AndroidOptions {
     val appManifest: RegularFileProperty
 }
 
-internal fun AndroidOptions.addToExecSpec(execSpec: ExecSpec) {
-    if (appManifest.isPresent) {
-        execSpec.args("--app-manifest=${appManifest.get().asFile.absolutePath}")
+internal fun AndroidOptions.addToCli(cliOptions: BugsnagCliTask.BugsnagCliBuilder) {
+    cliOptions.apply {
+        "app-manifest" `=` appManifest
     }
 }
 

@@ -48,8 +48,9 @@ class GradlePlugin @Inject constructor(
                 ) { task ->
                     configureAndroidTask(task, bugsnag, variant)
                     task.mappingFile.set(variant.obfuscationMappingFile)
-                    variant.dexFile?.let { task.dexFile.set(it) }
-                    bugsnag.buildId?.let { task.buildId.set(it) }
+                    task.androidVariantMetadata.configureFrom(bugsnag, variant)
+                    variant.dexClassesDir?.let { task.dexClassesDir.set(it) }
+                    bugsnag.buildUuid?.let { task.buildUuid.set(it) }
                 }
             }
 
@@ -63,6 +64,8 @@ class GradlePlugin @Inject constructor(
 
                     val projectRoot = bugsnag.projectRoot ?: target.rootDir.toString()
                     task.projectRoot.set(projectRoot)
+                    task.ndkRoot.set(bugsnag.ndkRoot)
+                    task.androidVariantMetadata.configureFrom(bugsnag, variant)
 
                     task.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
                 }
@@ -76,7 +79,7 @@ class GradlePlugin @Inject constructor(
             task.globalOptions.configureFrom(bugsnag, execOperations)
             task.systemMetadata.configureFrom(target, bugsnag)
             task.metadata.set(bugsnag.metadata)
-            task.variantMetadata.configureFrom(variant)
+            task.variantMetadata.configureFrom(bugsnag, variant)
             task.androidManifestFile.set(variant.manifestFile)
             task.projectPath.set(task.project.projectDir.toString())
         }

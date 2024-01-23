@@ -1,6 +1,8 @@
 package com.bugsnag.gradle
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.FileSystemLocation
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Nested
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
@@ -21,35 +23,38 @@ internal abstract class BugsnagCliTask : DefaultTask() {
     @get:Nested
     abstract val globalOptions: GlobalOptions
 
-    protected open fun exec(vararg args: String) {
+    /**
+     * Run the configured `bugsnag-cli` with the given arguments. The ordering of the arguments is always:
+     * `bugsnag-cli <global-options> <args> <options>`.
+     */
+    protected open fun exec(vararg args: String, options: BugsnagCliBuilder.() -> Unit) {
         exec {
-            it.executable(globalOptions.executableFile.get())
-            globalOptions.addToExecSpec(it)
-            it.args(*args)
+            executable(globalOptions.executableFile.get())
+            globalOptions.addToUploadExecSpec(this)
+            args(*args)
+            options()
         }
     }
 
-    protected open fun execUpload(uploadType: String, vararg args: String) {
-        exec {
-            it.executable(globalOptions.executableFile.get())
-            it.args("upload", uploadType)
-            globalOptions.addToUploadExecSpec(it)
-            it.args(*args)
+    protected open fun execUpload(uploadType: String, file: String, options: BugsnagCliBuilder.() -> Unit) {
+        exec("upload", uploadType) {
+            options()
+            +file
         }
     }
 
-    protected open fun execForOutput(spec: (ExecSpec) -> Unit): String {
+    protected open fun execForOutput(spec: BugsnagCliBuilder.() -> Unit): String {
         val stdout = ByteArrayOutputStream()
         val stderr = ByteArrayOutputStream()
-        val result = execResult(spec, stdout, stderr)
+        val result = execForResult(spec, stdout, stderr)
         execResultCheck(result, stdout, stderr)
         return stdout.toString("UTF-8")
     }
 
-    protected open fun exec(spec: (ExecSpec) -> Unit) {
+    protected open fun exec(cliBuilder: BugsnagCliBuilder.() -> Unit) {
         val stdout = ByteArrayOutputStream()
         val stderr = ByteArrayOutputStream()
-        val result = execResult(spec, stdout, stderr)
+        val result = execForResult(cliBuilder, stdout, stderr)
         execResultCheck(result, stdout, stderr)
     }
 
@@ -70,15 +75,15 @@ internal abstract class BugsnagCliTask : DefaultTask() {
         }
     }
 
-    private fun execResult(
-        spec: (ExecSpec) -> Unit,
+    private fun execForResult(
+        cliBuilder: BugsnagCliBuilder.() -> Unit,
         stdout: ByteArrayOutputStream,
         stderr: ByteArrayOutputStream
     ): ExecResult? {
         val result = execOperations
             .exec {
                 it.executable(globalOptions.executableFile.get())
-                spec(it)
+                BugsnagCliBuilder(it).cliBuilder()
 
                 it.standardOutput = stdout
                 it.errorOutput = stderr
@@ -111,5 +116,43 @@ internal abstract class BugsnagCliTask : DefaultTask() {
                     logger.error(line.substring(CLI_LOG_ERROR.length))
                 }
             }
+    }
+
+    /**
+     * Extended ExecSpec DSL to make creating option arguments from nullable-strings and `Providers` simpler.
+     * Options can be added as:
+     * ```kotlin
+     * "api-key" `=` apiKeyProperty
+     * ```
+     * If the value of an argument is null or not present the option is omitted completely.
+     */
+    class BugsnagCliBuilder(private val delegate: ExecSpec) : ExecSpec by delegate {
+        @JvmName("setString")
+        infix fun String.`=`(value: String?) {
+            if (value != null) {
+                delegate.args("--$this=$value")
+            }
+        }
+
+        @JvmName("setString")
+        infix fun String.`=`(value: Provider<String>?) {
+            if (value?.isPresent == true) {
+                delegate.args("--$this=${value.get()}")
+            }
+        }
+
+        @JvmName("setFile")
+        infix fun String.`=`(value: Provider<out FileSystemLocation>?) {
+            if (value?.isPresent == true) {
+                delegate.args("--$this=${value.get().asFile.absolutePath}")
+            }
+        }
+
+        /**
+         * Alias for [args].
+         */
+        operator fun String.unaryPlus() {
+            delegate.args(this)
+        }
     }
 }

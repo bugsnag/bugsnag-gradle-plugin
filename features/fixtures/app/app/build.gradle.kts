@@ -47,6 +47,11 @@ bugsnag {
     uploadApiEndpointRootUrl = "http://localhost:9339/builds"
     buildApiEndpointRootUrl = "http://localhost:9339/builds"
 
+    builderName = "test_user"
+
     System.getenv("PROJECT_ROOT")?.let { projectRoot = File(project.rootDir, it).toString() }
-    System.getenv("BUILD_UUID")?.let { buildId = it }
+    System.getenv("BUILD_UUID")?.let { buildUuid = it }
+
+    System.getenv("VERSION_NAME_OVERRIDE")?.let { versionNameOverride = it }
+    System.getenv("VERSION_CODE_OVERRIDE")?.let { versionCodeOverride = it.toInt() }
 }
