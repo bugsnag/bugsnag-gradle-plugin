@@ -1,5 +1,6 @@
 package com.bugsnag.gradle
 
+import com.bugsnag.gradle.dsl.BugsnagExtension
 import com.bugsnag.gradle.util.NullOutputStream
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input

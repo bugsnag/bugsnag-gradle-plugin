@@ -1,6 +1,9 @@
 package com.bugsnag.gradle
 
 import com.bugsnag.gradle.android.*
+import com.bugsnag.gradle.dsl.BugsnagExtension
+import com.bugsnag.gradle.dsl.debug
+import com.bugsnag.gradle.dsl.mergeWith
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -16,29 +19,33 @@ class GradlePlugin @Inject constructor(
 ) : Plugin<Project> {
     override fun apply(target: Project) {
         val bugsnag = target.extensions.create("bugsnag", BugsnagExtension::class.java)
-        if (!bugsnag.enabled) {
-            return
-        }
+        // turn-off the 'debug' variant by default
+        bugsnag.variants.debug.enabled = false
 
         configurePlugin(bugsnag, target)
     }
 
     private fun configurePlugin(bugsnag: BugsnagExtension, target: Project) {
         target.onAndroidVariant { variant: AndroidVariant ->
-            if (!bugsnag.enabled) {
+            val variantConfiguration = bugsnag.variants
+                .findByName(variant.name)
+                ?.mergeWith(target.objects, bugsnag)
+                ?: bugsnag
+
+            if (!variantConfiguration.enabled) {
                 return@onAndroidVariant
             }
 
             target.tasks.register(
                 variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "Bundle"),
                 UploadBundleTask::class.java,
-                configureUploadBundleTask(target, bugsnag, variant)
+                configureUploadBundleTask(target, variantConfiguration, variant)
             )
 
             target.tasks.register(
                 variant.name.toTaskName(prefix = CREATE_BUILD_TASK_PREFIX, suffix = "Build"),
                 CreateBuildTask::class.java,
-                configureCreateBuildTask(target, bugsnag, variant)
+                configureCreateBuildTask(target, variantConfiguration, variant)
             )
 
             if (variant.obfuscationMappingFile != null) {
@@ -46,11 +53,11 @@ class GradlePlugin @Inject constructor(
                     variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "ProguardMapping"),
                     UploadMappingTask::class.java
                 ) { task ->
-                    configureAndroidTask(task, bugsnag, variant)
+                    configureAndroidTask(task, variantConfiguration, variant)
                     task.mappingFile.set(variant.obfuscationMappingFile)
-                    task.androidVariantMetadata.configureFrom(bugsnag, variant)
+                    task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
                     variant.dexClassesDir?.let { task.dexClassesDir.set(it) }
-                    bugsnag.buildUuid?.let { task.buildUuid.set(it) }
+                    variantConfiguration.buildUuid?.let { task.buildUuid.set(it) }
                 }
             }
 
@@ -59,13 +66,13 @@ class GradlePlugin @Inject constructor(
                     variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "NativeSymbols"),
                     UploadNativeSymbolsTask::class.java
                 ) { task ->
-                    configureAndroidTask(task, bugsnag, variant)
+                    configureAndroidTask(task, variantConfiguration, variant)
                     task.symbolFiles.from(variant.nativeSymbols)
 
-                    val projectRoot = bugsnag.projectRoot ?: target.rootDir.toString()
+                    val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
                     task.projectRoot.set(projectRoot)
-                    task.ndkRoot.set(bugsnag.ndkRoot)
-                    task.androidVariantMetadata.configureFrom(bugsnag, variant)
+                    task.ndkRoot.set(variantConfiguration.ndkRoot)
+                    task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
 
                     task.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
                 }

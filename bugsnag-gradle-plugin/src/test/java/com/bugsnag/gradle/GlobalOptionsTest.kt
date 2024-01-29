@@ -1,17 +1,15 @@
 package com.bugsnag.gradle
 
+import com.bugsnag.gradle.dsl.BugsnagExtension
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.internal.file.IdentityFileResolver
-import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.DefaultExecSpec
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.mockito.Mockito.*
+import org.mockito.Mockito.any
+import org.mockito.Mockito.mock
 import org.mockito.Mockito.`when` as whenever
 
 class GlobalOptionsTest {
@@ -50,9 +48,13 @@ class GlobalOptionsTest {
     @Test
     fun testFromExtension() {
         val options = TestGlobalOptions()
+        val objects = mock(ObjectFactory::class.java)
         val execOperations = mock(ExecOperations::class.java)
 
-        val bugsnag = BugsnagExtension().apply {
+        whenever(objects.domainObjectContainer(any(Class::class.java)))
+            .thenReturn(mock(NamedDomainObjectContainer::class.java))
+
+        val bugsnag = BugsnagExtension(objects).apply {
             cliPath = "/hello-bugsnag-cli"
             failOnUploadError = false
             overwrite = true
