@@ -39,8 +39,9 @@ internal fun BugsnagVariantExtension.mergeWith(objects: ObjectFactory, root: Bug
         it.metadata = metadata ?: root.metadata
         it.builderName = builderName ?: root.builderName
 
+        // Non-Variant specific properties
+        it.enableLegacyNativeExtraction = root.enableLegacyNativeExtraction
         it.variants.add(this)
-
         it.cliPath = root.cliPath
     }
 }

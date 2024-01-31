@@ -31,6 +31,14 @@ open class BugsnagExtension @Inject constructor(objects: ObjectFactory) : Bugsna
      */
     var cliPath: String? = null
 
+    /**
+     * If `true` then the BugSnag NDK headers and libraries will be extracted for apps that require the BugSnag C
+     * libraries (and `bugsnag.h`) but are not using [prefabs](https://docs.bugsnag.com/platforms/android/#native-api-configuration).
+     *
+     * Defaults to `false`
+     */
+    var enableLegacyNativeExtraction: Boolean = false
+
     val variants: NamedDomainObjectContainer<BugsnagVariantExtension> =
         objects.domainObjectContainer(BugsnagVariantExtension::class.java)
 
