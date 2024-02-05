@@ -13,7 +13,7 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.Provider
 
-data class AndroidVariant(
+internal data class AndroidVariant(
     val name: String,
     val manifestFile: Provider<RegularFile>,
     val bundleFile: Provider<RegularFile>,
@@ -49,24 +49,27 @@ internal fun Project.onAndroidVariant(consumer: (variant: AndroidVariant) -> Uni
 private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit) {
     try {
         val androidExtension = extensions.findByType(AndroidComponentsExtension::class.java)
+
         androidExtension?.onVariants { variant: Variant ->
             when (variant) {
                 is ApplicationVariant -> variant.outputs.onEach { output ->
-                    consumer(
-                        AndroidVariant(
-                            variant.name,
-                            variant.artifacts.get(SingleArtifact.MERGED_MANIFEST),
-                            variant.artifacts.get(SingleArtifact.BUNDLE),
-                            getNativeSymbolDirs(variant),
-                            variant.artifacts
-                                .get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
-                                .takeIf { isMinifyEnabledFor(variant) },
-                            output.versionName,
-                            output.versionCode,
-                            variant.applicationId,
-                            getDexFiles(variant)
+                    if (output.enabled.get()) {
+                        consumer(
+                            AndroidVariant(
+                                variant.name,
+                                variant.artifacts.get(SingleArtifact.MERGED_MANIFEST),
+                                variant.artifacts.get(SingleArtifact.BUNDLE),
+                                getNativeSymbolDirs(variant),
+                                variant.artifacts
+                                    .get(SingleArtifact.OBFUSCATION_MAPPING_FILE)
+                                    .takeIf { isMinifyEnabledFor(variant) },
+                                output.versionName,
+                                output.versionCode,
+                                variant.applicationId,
+                                getDexFiles(variant),
+                            )
                         )
-                    )
+                    }
                 }
 
                 else -> consumer(
@@ -81,7 +84,7 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                         null,
                         null,
                         null,
-                        getDexFiles(variant)
+                        getDexFiles(variant),
                     )
                 )
             }

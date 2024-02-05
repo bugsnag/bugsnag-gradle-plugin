@@ -1,33 +1,33 @@
-package com.bugsnag.gradle
+package com.bugsnag.gradle.dsl
 
-open class BugsnagExtension {
+interface BugsnagCommonExtension {
     /**
      * Whether the Bugsnag Plugin is enabled, setting this to `false` will deactivate the plugin completely.
      *
      * Defaults to `true`
      */
-    var enabled: Boolean = true
+    var enabled: Boolean
 
     /**
      * Whether the build should fail when an upload fails.
      *
      * Defaults to `true`
      */
-    var failOnUploadError: Boolean = true
+    var failOnUploadError: Boolean
 
     /**
      * If `true` overwrite any existing symbol files (`mapping.txt, `*.sym.so`, etc.) already uploaded.
      *
      * Defaults to `false`
      */
-    var overwrite: Boolean = false
+    var overwrite: Boolean
 
     /**
      * If a non-null positive value this is the number of seconds timeout for the upload commands to run.
      *
      * Defaults to `null`
      */
-    var timeout: Int? = null
+    var timeout: Int?
 
     /**
      * The number of retries to perform when attempting an upload. This can be set in cases where network reliability
@@ -35,52 +35,55 @@ open class BugsnagExtension {
      *
      * Defaults to `null` (no retries)
      */
-    var retries: Int? = null
-
-    /**
-     * Optionally the path of the `bugsnag-cli` executable, if not specified then the plugin will attempt to
-     * use the packaged CLI tool. If you have a system-wide `bugsnag-cli` installed you can set this to [systemCli]
-     * to use it.
-     *
-     * Defaults to `null`
-     */
-    var cliPath: String? = null
+    var retries: Int?
 
     /**
      * Optionally override the detected apiKey.
      *
      * Defaults to `null`
      */
-    var apiKey: String? = null
+    var apiKey: String?
 
-    var buildUuid: String? = null
+    var buildUuid: String?
 
     /**
      * Alias for [buildUuid]
      */
-    var buildUUID: String? by ::buildUuid
+    var buildUUID: String?
+        get() = buildUuid
+        set(value) {
+            buildUuid = value
+        }
 
     /**
      * Optionally override the detected versionName. This is useful if you also override `Configuration.appVersion`.
      * @see [Configuration.appVersion](https://docs.bugsnag.com/platforms/android/configuration-options/#appversion)
      */
-    var versionNameOverride: String? = null
+    var versionNameOverride: String?
 
     /**
      * Optionally override the detected versionCode. This is useful if you also override `Configuration.versionCode`.
      * @see [Configuration.versionCode](https://docs.bugsnag.com/platforms/android/configuration-options/#versioncode)
      */
-    var versionCodeOverride: Int? = null
+    var versionCodeOverride: Int?
 
-    var uploadApiEndpointRootUrl: String? = null
+    var uploadApiEndpointRootUrl: String?
 
-    var buildApiEndpointRootUrl: String? = null
+    var buildApiEndpointRootUrl: String?
 
     @Deprecated("replaced by uploadApiEndpointRootUrl", replaceWith = ReplaceWith("uploadApiEndpointRootUrl"))
-    var endpoint: String? by ::uploadApiEndpointRootUrl
+    var endpoint: String?
+        get() = uploadApiEndpointRootUrl
+        set(value) {
+            uploadApiEndpointRootUrl = value
+        }
 
     @Deprecated("replaced by buildApiEndpointRootUrl", replaceWith = ReplaceWith("buildApiEndpointRootUrl"))
-    var releasesEndpoint: String? by ::buildApiEndpointRootUrl
+    var releasesEndpoint: String?
+        get() = buildApiEndpointRootUrl
+        set(value) {
+            buildApiEndpointRootUrl = value
+        }
 
     /**
      * The project root to trim from the beginning of the native symbol filenames. This directly corresponds to the
@@ -88,25 +91,19 @@ open class BugsnagExtension {
      *
      * Defaults to the Gradle root-project directory
      */
-    var projectRoot: String? = null
+    var projectRoot: String?
 
     /**
      * Path to Android NDK installation ($ANDROID_NDK_ROOT is used if this is not set).
      */
-    var ndkRoot: String? = null
+    var ndkRoot: String?
 
     /**
      * Metadata to be included in builds / released on BugSnag. This will always include information gathered from
      * the build environment: os name, version and architecture, builder name, Java and Gradle version, and
      * source control information.
      */
-    var metadata: MutableMap<String, String>? = LinkedHashMap()
+    var metadata: MutableMap<String, String>?
 
-    var builderName: String? = null
-
-    /**
-     * When [cliPath] is set to `systemCli` then the system-wide `bugsnag-cli` will be used (whatever is on your
-     * `PATH` environment variable).
-     */
-    fun systemCli(): String = SYSTEM_CLI_FILE
+    var builderName: String?
 }

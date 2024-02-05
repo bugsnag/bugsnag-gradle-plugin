@@ -1,7 +1,7 @@
 package com.bugsnag.gradle.android
 
 import com.bugsnag.gradle.BugsnagCliTask
-import com.bugsnag.gradle.BugsnagExtension
+import com.bugsnag.gradle.dsl.BugsnagExtension
 import org.gradle.api.Project
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.MapProperty
