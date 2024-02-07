@@ -1,5 +1,6 @@
 package com.bugsnag.gradle
 
+import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.bugsnag.gradle.android.*
 import com.bugsnag.gradle.dsl.BugsnagExtension
 import com.bugsnag.gradle.dsl.debug
@@ -13,6 +14,7 @@ import javax.inject.Inject
 internal const val TASK_GROUP = "BugSnag"
 internal const val UPLOAD_TASK_PREFIX = "bugsnagUpload"
 internal const val CREATE_BUILD_TASK_PREFIX = "bugsnagCreate"
+internal const val CLEAN_TASK = "Clean"
 
 class GradlePlugin @Inject constructor(
     private val execOperations: ExecOperations,
@@ -26,6 +28,12 @@ class GradlePlugin @Inject constructor(
     }
 
     private fun configurePlugin(bugsnag: BugsnagExtension, target: Project) {
+        target.afterEvaluate {
+            if (bugsnag.enabled && bugsnag.enableLegacyNativeExtraction) {
+                registerNdkLibInstallTask(target)
+            }
+        }
+
         target.onAndroidVariant { variant: AndroidVariant ->
             val variantConfiguration = bugsnag.variants
                 .findByName(variant.name)
@@ -64,20 +72,46 @@ class GradlePlugin @Inject constructor(
             if (variant.nativeSymbols != null) {
                 target.tasks.register(
                     variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "NativeSymbols"),
-                    UploadNativeSymbolsTask::class.java
-                ) { task ->
-                    configureAndroidTask(task, variantConfiguration, variant)
-                    task.symbolFiles.from(variant.nativeSymbols)
-
-                    val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
-                    task.projectRoot.set(projectRoot)
-                    task.ndkRoot.set(variantConfiguration.ndkRoot)
-                    task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
-
-                    task.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
-                }
+                    UploadNativeSymbolsTask::class.java,
+                    configureUploadNativeSymbolsTask(bugsnag, variant, target)
+                )
             }
         }
+    }
+
+    private fun registerNdkLibInstallTask(project: Project) {
+        val ndkTasks = project.tasks.withType(ExternalNativeBuildTask::class.java)
+        val cleanTasks = ndkTasks.filter { it.name.contains(CLEAN_TASK) }.toSet()
+        val buildTasks = ndkTasks.filter { !it.name.contains(CLEAN_TASK) }.toSet()
+
+        if (buildTasks.isNotEmpty()) {
+            val ndkSetupTask = project.tasks.register(
+                "bugsnagInstallJniLibsTask",
+                ExtractBugsnagJniLibsTask::class.java
+            ) { task ->
+                task.group = TASK_GROUP
+                task.bugsnagArtifacts.from(ExtractBugsnagJniLibsTask.resolveBugsnagArtifacts(project))
+            }
+
+            ndkSetupTask.configure { it.mustRunAfter(cleanTasks) }
+            buildTasks.forEach { it.dependsOn(ndkSetupTask) }
+        }
+    }
+
+    private fun configureUploadNativeSymbolsTask(
+        variantConfiguration: BugsnagExtension,
+        variant: AndroidVariant,
+        target: Project
+    ) = Action<UploadNativeSymbolsTask> { task ->
+        configureAndroidTask(task, variantConfiguration, variant)
+        task.symbolFiles.from(variant.nativeSymbols)
+
+        val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
+        task.projectRoot.set(projectRoot)
+        task.ndkRoot.set(variantConfiguration.ndkRoot)
+        task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
+
+        task.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
     }
 
     private fun configureCreateBuildTask(target: Project, bugsnag: BugsnagExtension, variant: AndroidVariant) =
