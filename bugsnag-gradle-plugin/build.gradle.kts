@@ -1,8 +1,9 @@
 plugins {
     id("java-gradle-plugin")
-    id("org.jetbrains.kotlin.jvm") version "1.8.10"
+    id("org.jetbrains.kotlin.jvm")
     id("maven-publish")
     id("signing")
+    id("com.github.hierynomus.license")
 }
 
 group = "com.bugsnag"
@@ -50,4 +51,13 @@ gradlePlugin {
 publishing {
     publications {
     }
+}
+
+license {
+    header = rootProject.file("LICENSE")
+    ignoreFailures = true
+}
+
+downloadLicenses {
+    dependencyConfiguration = "compile"
 }

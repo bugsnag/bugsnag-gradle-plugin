@@ -1,0 +1,11 @@
+version: '3.6'
+services:
+  license-audit:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.license-audit
+
+  android-gradle-plugin-ci:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.android-ci
