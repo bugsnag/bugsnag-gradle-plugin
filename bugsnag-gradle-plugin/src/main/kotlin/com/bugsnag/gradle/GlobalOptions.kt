@@ -98,7 +98,11 @@ internal fun GlobalOptions.configureFrom(extension: BugsnagExtension, execOperat
 private fun BugsnagExtension.getCliExecutable(execOperations: ExecOperations): String {
     if (cliPath == SYSTEM_CLI_FILE) {
         return systemCliIfInstalled(execOperations)
-            ?: throw BugsnagCliException("systemCli was specified, but no bugsnag-cli was not found on your path. See https://docs.bugsnag.com/build-integrations/bugsnag-cli/#installation for installation instructions.")
+            ?: throw BugsnagCliException(
+                "systemCli was specified, but no bugsnag-cli was not found on your path. " +
+                    "See https://docs.bugsnag.com/build-integrations/bugsnag-cli/#installation " +
+                    "for installation instructions."
+            )
     }
 
     return cliPath ?: EmbeddedCliExtractor.embeddedCliPath

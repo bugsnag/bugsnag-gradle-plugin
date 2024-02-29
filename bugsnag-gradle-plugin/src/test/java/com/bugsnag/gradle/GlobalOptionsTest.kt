@@ -6,7 +6,9 @@ import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.model.ObjectFactory
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.DefaultExecSpec
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.mock
@@ -27,7 +29,7 @@ class GlobalOptionsTest {
 
         assertEquals(
             listOf("--api-key=abc123", "--overwrite", "--timeout=987", "--retries=42"),
-            execSpec.args,
+            execSpec.args
         )
     }
 
@@ -41,7 +43,7 @@ class GlobalOptionsTest {
 
         assertEquals(
             listOf("--fail-on-upload-error"),
-            execSpec.args,
+            execSpec.args
         )
     }
 

@@ -27,24 +27,18 @@ RUN rm $CMDLINE_TOOLS_NAME
 
 # Install Android tools using sdkmanager
 RUN yes | sdkmanager "platform-tools" > /dev/null
+RUN yes | sdkmanager "ndk;25.0.8775105" > /dev/null
 RUN yes | sdkmanager "platforms;android-30" > /dev/null
-RUN yes | sdkmanager "ndk;17.2.4988734" > /dev/null
-RUN yes | sdkmanager "cmake;3.6.4111459" > /dev/null
-RUN yes | sdkmanager "cmake;3.10.2.4988404" > /dev/null
 RUN yes | sdkmanager "build-tools;30.0.3" > /dev/null
 
 # Install bundletool
 RUN wget -q https://github.com/google/bundletool/releases/download/1.4.0/bundletool-all-1.4.0.jar
 RUN mv bundletool-all-1.4.0.jar bundletool.jar
 
-
 # Install AGP specific system and Android requirements
 RUN apt-get update > /dev/null
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y git ruby-full make libcurl4-openssl-dev gcc g++ openjdk-11-jdk
 RUN apt-get clean > /dev/null
-
-RUN yes | sdkmanager 'ndk;16.1.4479499' >/dev/null
-ENV ANDROID_NDK_HOME="/sdk/ndk/16.1.4479499"
 
 # Install Ruby and other maze-runner requirements
 RUN gem install bundler
@@ -72,11 +66,11 @@ WORKDIR /app
 COPY gradlew gradle.properties /app/
 COPY gradle/ /app/gradle/
 ENV GRADLE_OPTS="-Dorg.gradle.daemon=false"
-COPY settings.gradle /app/
+COPY settings.gradle.kts /app/
 RUN ./gradlew
 
 # Copy remaining Gradle files
-COPY build.gradle /app/
+COPY build.gradle.kts /app/
 
 # Copy source and git config
 COPY src/ src/

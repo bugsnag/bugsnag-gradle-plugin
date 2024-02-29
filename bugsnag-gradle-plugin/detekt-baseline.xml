@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>FunctionNaming:BugsnagCliTask.kt$BugsnagCliTask.BugsnagCliBuilder$@JvmName("setFile") infix fun String.`=`(value: Provider&lt;out FileSystemLocation&gt;?)</ID>
+    <ID>FunctionNaming:BugsnagCliTask.kt$BugsnagCliTask.BugsnagCliBuilder$@JvmName("setString") infix fun String.`=`(value: Provider&lt;String&gt;?)</ID>
+    <ID>SwallowedException:AndroidVariant.kt$ex: NoClassDefFoundError</ID>
+    <ID>SwallowedException:GlobalOptions.kt$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:GlobalOptions.kt$ex: Exception</ID>
+  </CurrentIssues>
+</SmellBaseline>

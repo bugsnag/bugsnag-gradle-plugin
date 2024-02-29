@@ -1,7 +1,16 @@
 package com.bugsnag.gradle
 
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
-import com.bugsnag.gradle.android.*
+import com.bugsnag.gradle.android.AbstractAndroidTask
+import com.bugsnag.gradle.android.AndroidVariant
+import com.bugsnag.gradle.android.CreateBuildTask
+import com.bugsnag.gradle.android.ExtractBugsnagJniLibsTask
+import com.bugsnag.gradle.android.UploadBundleTask
+import com.bugsnag.gradle.android.UploadMappingTask
+import com.bugsnag.gradle.android.UploadNativeSymbolsTask
+import com.bugsnag.gradle.android.configureFrom
+import com.bugsnag.gradle.android.from
+import com.bugsnag.gradle.android.onAndroidVariant
 import com.bugsnag.gradle.dsl.BugsnagExtension
 import com.bugsnag.gradle.dsl.debug
 import com.bugsnag.gradle.dsl.mergeWith
@@ -17,7 +26,7 @@ internal const val CREATE_BUILD_TASK_PREFIX = "bugsnagCreate"
 internal const val CLEAN_TASK = "Clean"
 
 class GradlePlugin @Inject constructor(
-    private val execOperations: ExecOperations,
+    private val execOperations: ExecOperations
 ) : Plugin<Project> {
     override fun apply(target: Project) {
         val bugsnag = target.extensions.create("bugsnag", BugsnagExtension::class.java)

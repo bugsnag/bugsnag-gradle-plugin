@@ -33,7 +33,8 @@ open class BugsnagExtension @Inject constructor(objects: ObjectFactory) : Bugsna
 
     /**
      * If `true` then the BugSnag NDK headers and libraries will be extracted for apps that require the BugSnag C
-     * libraries (and `bugsnag.h`) but are not using [prefabs](https://docs.bugsnag.com/platforms/android/#native-api-configuration).
+     * libraries (and `bugsnag.h`) but are not using
+     * [prefabs](https://docs.bugsnag.com/platforms/android/#native-api-configuration).
      *
      * Defaults to `false`
      */
