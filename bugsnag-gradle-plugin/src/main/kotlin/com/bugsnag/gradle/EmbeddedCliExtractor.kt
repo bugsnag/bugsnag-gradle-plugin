@@ -1,7 +1,6 @@
 package com.bugsnag.gradle
 
 import org.gradle.api.tasks.StopExecutionException
-
 import java.io.File
 
 /**

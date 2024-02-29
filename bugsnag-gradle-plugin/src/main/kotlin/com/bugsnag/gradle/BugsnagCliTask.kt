@@ -128,6 +128,7 @@ internal abstract class BugsnagCliTask : DefaultTask() {
      */
     class BugsnagCliBuilder(private val delegate: ExecSpec) : ExecSpec by delegate {
         @JvmName("setString")
+        @Suppress("FunctionNaming")
         infix fun String.`=`(value: String?) {
             if (value != null) {
                 delegate.args("--$this=$value")
