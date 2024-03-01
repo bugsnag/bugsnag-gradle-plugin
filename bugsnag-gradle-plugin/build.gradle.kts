@@ -55,12 +55,3 @@ publishing {
     publications {
     }
 }
-
-license {
-    header = rootProject.file("LICENSE")
-    ignoreFailures = true
-}
-
-downloadLicenses {
-    dependencyConfiguration = "compile"
-}

@@ -73,7 +73,7 @@ RUN ./gradlew
 COPY build.gradle.kts /app/
 
 # Copy source and git config
-COPY src/ src/
+COPY bugsnag-gradle-plugin/ src/
 COPY .git/ .git/
 
 # Copy any other test associated files
