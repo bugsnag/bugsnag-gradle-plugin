@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 RUN apt-get update > /dev/n
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget maven gnupg1 cppcheck libncurses5 jq clang-format unzip curl git
@@ -9,14 +9,6 @@ ENV ANDROID_CMDLINE_TOOLS="${ANDROID_SDK_ROOT}/cmdline-tools/latest"
 ENV PATH="${PATH}:${ANDROID_CMDLINE_TOOLS}/bin"
 ENV CMDLINE_TOOLS_NAME="commandlinetools-linux-6858069_latest.zip"
 WORKDIR $ANDROID_SDK_ROOT
-
-# Generate signing key
-COPY features/scripts/generate_gpg_key generate_gpg_key
-RUN gpg1 --gen-key --batch generate_gpg_key
-RUN mkdir ~/.gradle
-RUN gpg1 --list-keys | awk -F '[/\ ]' 'FNR==3{printf "signing.keyId=%s\n", $5}' >> ~/.gradle/gradle.properties
-RUN echo "signing.password=password" >> ~/.gradle/gradle.properties
-RUN echo "signing.secretKeyRingFile=/root/.gnupg/secring.gpg" >> ~/.gradle/gradle.properties
 
 # Download Android command line tools
 RUN wget https://dl.google.com/android/repository/${CMDLINE_TOOLS_NAME} -q
@@ -42,7 +34,6 @@ RUN apt-get clean > /dev/null
 
 # Install Ruby and other maze-runner requirements
 RUN gem install bundler
-RUN gem update --system 3.0.6
 
 # Install node, npm and yarn
 RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
@@ -63,9 +54,9 @@ WORKDIR /app
 
 # Force download of gradle zip early to avoid repeating
 # if Docker cache is invalidated by branch changes.
-COPY gradlew gradle.properties /app/
 COPY gradle/ /app/gradle/
 ENV GRADLE_OPTS="-Dorg.gradle.daemon=false"
+COPY build.gradle.kts gradlew /app/
 COPY settings.gradle.kts /app/
 RUN ./gradlew
 
@@ -77,7 +68,7 @@ COPY bugsnag-gradle-plugin/ src/
 COPY .git/ .git/
 
 # Copy any other test associated files
-COPY detekt-baseline.xml Gemfile Makefile LICENSE /app/
+COPY detekt-baseline.xml Gemfile LICENSE /app/
 COPY features/ features/
 
 # Install maze-runner
