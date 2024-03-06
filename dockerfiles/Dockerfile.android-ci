@@ -57,18 +57,19 @@ WORKDIR /app
 COPY gradle/ /app/gradle/
 ENV GRADLE_OPTS="-Dorg.gradle.daemon=false"
 COPY build.gradle.kts gradlew /app/
-COPY settings.gradle.kts /app/
 RUN ./gradlew
 
 # Copy remaining Gradle files
 COPY build.gradle.kts /app/
+COPY settings.gradle.kts /app/
 
 # Copy source and git config
-COPY bugsnag-gradle-plugin/ src/
+COPY bugsnag-gradle-plugin/ bugsnag-gradle-plugin/
+COPY bugsnag-cli/ bugsnag-cli/
 COPY .git/ .git/
+COPY Gemfile LICENSE /app/
 
 # Copy any other test associated files
-COPY detekt-baseline.xml Gemfile LICENSE /app/
 COPY features/ features/
 
 # Install maze-runner
