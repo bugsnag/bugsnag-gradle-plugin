@@ -9,10 +9,10 @@ steps:
           image-repository: 855461928731.dkr.ecr.us-west-1.amazonaws.com/android
           cache-from:
             - android-common:855461928731.dkr.ecr.us-west-1.amazonaws.com/android:latest
-            - bugsnag-gradle-plugin:855461928731.dkr.ecr.us-west-1.amazonaws.com/android:bugsnag-gradle-plugin-v7
+            - bugsnag-gradle-plugin:855461928731.dkr.ecr.us-west-1.amazonaws.com/android:bugsnag-gradle-plugin
       - docker-compose#v3.7.0:
           push:
-            - bugsnag-gradle-plugin:855461928731.dkr.ecr.us-west-1.amazonaws.com/android:bugsnag-gradle-plugin-v7
+            - bugsnag-gradle-plugin:855461928731.dkr.ecr.us-west-1.amazonaws.com/android:bugsnag-gradle-plugin
 
   - label: ':android: Detekt'
     depends_on: 'agp-ci'
