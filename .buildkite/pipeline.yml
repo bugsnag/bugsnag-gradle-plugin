@@ -36,4 +36,4 @@ steps:
     plugins:
       - docker-compose#v3.7.0:
           run: bugsnag-gradle-plugin
-          command: ['./gradlew', 'test']
+          command: ['./gradlew', 'bugsnag-gradle-plugin:test']

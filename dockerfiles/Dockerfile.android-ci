@@ -4,6 +4,12 @@ RUN apt-get update > /dev/n
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget maven gnupg1 cppcheck libncurses5 jq clang-format unzip curl git
 RUN apt-get clean > /dev/null
 
+RUN echo "deb https://ppa.launchpadcontent.net/longsleep/golang-backports/ubuntu jammy main" > /etc/apt/sources.list.d/golang-backports.list
+RUN echo "deb-src https://ppa.launchpadcontent.net/longsleep/golang-backports/ubuntu jammy main" >> /etc/apt/sources.list.d/golang-backports.list
+RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 52B59B1571A79DBC054901C0F6BC817356A3D45E
+RUN apt-get update > /dev/n
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y golang
+
 ENV ANDROID_SDK_ROOT="/sdk"
 ENV ANDROID_CMDLINE_TOOLS="${ANDROID_SDK_ROOT}/cmdline-tools/latest"
 ENV PATH="${PATH}:${ANDROID_CMDLINE_TOOLS}/bin"
