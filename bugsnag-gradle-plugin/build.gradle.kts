@@ -1,8 +1,12 @@
 plugins {
     id("java-gradle-plugin")
-    id("org.jetbrains.kotlin.jvm") version "1.8.10"
+    id("org.jetbrains.kotlin.jvm")
     id("maven-publish")
     id("signing")
+
+    id("com.github.hierynomus.license")
+    id("io.gitlab.arturbosch.detekt")
+    id("org.jlleitschuh.gradle.ktlint")
 }
 
 group = "com.bugsnag"

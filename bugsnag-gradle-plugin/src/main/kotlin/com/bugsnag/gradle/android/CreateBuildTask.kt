@@ -6,7 +6,11 @@ import org.gradle.api.Project
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.TaskAction
 
 internal abstract class CreateBuildTask : BugsnagCliTask() {
     @get:Optional
@@ -98,5 +102,5 @@ internal fun CreateBuildTask.SystemMetadata.toMap(): Map<String, String?> =
         "os_version" to osVersion.orNull,
         "java_version" to javaVersion.orNull,
         "gradle_version" to gradleVersion.orNull,
-        "git_version" to gitVersion.orNull,
+        "git_version" to gitVersion.orNull
     )

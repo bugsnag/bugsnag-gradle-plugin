@@ -27,18 +27,18 @@ internal abstract class BugsnagCliTask : DefaultTask() {
      * Run the configured `bugsnag-cli` with the given arguments. The ordering of the arguments is always:
      * `bugsnag-cli <global-options> <args> <options>`.
      */
-    protected open fun exec(vararg args: String, options: BugsnagCliBuilder.() -> Unit) {
+    protected open fun exec(vararg args: String, cliBuilder: BugsnagCliBuilder.() -> Unit) {
         exec {
             executable(globalOptions.executableFile.get())
             globalOptions.addToUploadExecSpec(this)
             args(*args)
-            options()
+            cliBuilder()
         }
     }
 
-    protected open fun execUpload(uploadType: String, file: String, options: BugsnagCliBuilder.() -> Unit) {
+    protected open fun execUpload(uploadType: String, file: String, cliBuilder: BugsnagCliBuilder.() -> Unit) {
         exec("upload", uploadType) {
-            options()
+            cliBuilder()
             +file
         }
     }
@@ -128,6 +128,7 @@ internal abstract class BugsnagCliTask : DefaultTask() {
      */
     class BugsnagCliBuilder(private val delegate: ExecSpec) : ExecSpec by delegate {
         @JvmName("setString")
+        @Suppress("FunctionNaming")
         infix fun String.`=`(value: String?) {
             if (value != null) {
                 delegate.args("--$this=$value")

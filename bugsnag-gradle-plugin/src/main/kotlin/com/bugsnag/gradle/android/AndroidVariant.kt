@@ -26,7 +26,7 @@ internal data class AndroidVariant(
     val versionName: Provider<String?>?,
     val versionCode: Provider<Int?>?,
     val applicationId: Provider<String?>?,
-    val dexClassesDir: Provider<Directory>?,
+    val dexClassesDir: Provider<Directory>?
 ) {
     val bundleTaskName: String
         get() = name.toTaskName(prefix = "bundle")
@@ -66,7 +66,7 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                                 output.versionName,
                                 output.versionCode,
                                 variant.applicationId,
-                                getDexFiles(variant),
+                                getDexFiles(variant)
                             )
                         )
                     }
@@ -84,7 +84,7 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                         null,
                         null,
                         null,
-                        getDexFiles(variant),
+                        getDexFiles(variant)
                     )
                 )
             }
@@ -99,7 +99,9 @@ private fun Project.getNativeSymbolDirs(variant: Variant): Provider<List<Directo
         return null
     }
 
-    return project.layout.buildDirectory.map { listOf(it.dir("intermediates/merged_native_libs/${variant.name}/out/lib")) }
+    return project.layout.buildDirectory.map {
+        listOf(it.dir("intermediates/merged_native_libs/${variant.name}/out/lib"))
+    }
 }
 
 private fun Project.getDexFiles(variant: Variant): Provider<Directory> {
@@ -109,4 +111,3 @@ private fun Project.getDexFiles(variant: Variant): Provider<Directory> {
         layout.buildDirectory.dir("intermediates/dex/${variant.name}/mergeExtDex${variant.name.capitalise()}/")
     }
 }
-
