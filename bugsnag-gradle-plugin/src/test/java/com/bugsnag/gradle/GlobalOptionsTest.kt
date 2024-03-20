@@ -7,7 +7,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.DefaultExecSpec
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.any
@@ -19,7 +18,6 @@ class GlobalOptionsTest {
     fun testUploadOptions() {
         val options = TestGlobalOptions()
         options.apiKey.set("abc123")
-        options.failOnUploadError.set(false)
         options.overwrite.set(true)
         options.timeout.set(987)
         options.retries.set(42)
@@ -29,20 +27,6 @@ class GlobalOptionsTest {
 
         assertEquals(
             listOf("--api-key=abc123", "--overwrite", "--timeout=987", "--retries=42"),
-            execSpec.args
-        )
-    }
-
-    @Test
-    fun testFailOnUploadError() {
-        val options = TestGlobalOptions()
-        options.failOnUploadError.set(true)
-
-        val execSpec = DefaultExecSpec(IdentityFileResolver())
-        options.addToUploadExecSpec(execSpec)
-
-        assertEquals(
-            listOf("--fail-on-upload-error"),
             execSpec.args
         )
     }
@@ -67,7 +51,6 @@ class GlobalOptionsTest {
         options.configureFrom(bugsnag, execOperations)
 
         assertEquals("/hello-bugsnag-cli", options.executableFile.get())
-        assertFalse(options.failOnUploadError.get())
         assertTrue(options.overwrite.get())
 
         assertEquals(987, options.timeout.get())

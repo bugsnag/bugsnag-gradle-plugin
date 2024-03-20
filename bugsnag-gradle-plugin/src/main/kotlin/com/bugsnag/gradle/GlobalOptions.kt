@@ -18,10 +18,6 @@ interface GlobalOptions {
 
     @get:Input
     @get:Optional
-    val failOnUploadError: Property<Boolean>
-
-    @get:Input
-    @get:Optional
     val overwrite: Property<Boolean>
 
     @get:Input
@@ -48,10 +44,6 @@ interface GlobalOptions {
 internal fun GlobalOptions.addToExecSpec(execSpec: ExecSpec) {
     if (apiKey.isPresent) {
         execSpec.args("--api-key=${apiKey.get()}")
-    }
-
-    if (failOnUploadError.getOrElse(false)) {
-        execSpec.args("--fail-on-upload-error")
     }
 }
 
@@ -91,7 +83,6 @@ internal fun GlobalOptions.configureFrom(extension: BugsnagExtension, execOperat
     extension.apiKey?.let { apiKey.set(it) }
     extension.uploadApiEndpointRootUrl?.let { uploadApiEndpointRootUrl.set(it) }
     extension.buildApiEndpointRootUrl?.let { buildApiEndpointRootUrl.set(it) }
-    failOnUploadError.set(extension.failOnUploadError)
     overwrite.set(extension.overwrite)
 }
 
