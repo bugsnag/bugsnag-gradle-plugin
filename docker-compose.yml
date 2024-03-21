@@ -1,9 +1,5 @@
 version: '3.6'
 services:
-  license-audit:
-    build:
-      context: .
-      dockerfile: dockerfiles/Dockerfile.license-audit
   bugsnag-gradle-plugin:
     build:
       context: .

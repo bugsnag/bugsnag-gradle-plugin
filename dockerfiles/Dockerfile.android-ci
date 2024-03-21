@@ -8,7 +8,8 @@ RUN echo "deb https://ppa.launchpadcontent.net/longsleep/golang-backports/ubuntu
 RUN echo "deb-src https://ppa.launchpadcontent.net/longsleep/golang-backports/ubuntu jammy main" >> /etc/apt/sources.list.d/golang-backports.list
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 52B59B1571A79DBC054901C0F6BC817356A3D45E
 RUN apt-get update > /dev/n
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y golang
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y golang-1.22
+ENV PATH="${PATH}:/usr/lib/go-1.22/bin"
 
 ENV ANDROID_SDK_ROOT="/sdk"
 ENV ANDROID_CMDLINE_TOOLS="${ANDROID_SDK_ROOT}/cmdline-tools/latest"
@@ -27,7 +28,7 @@ RUN rm $CMDLINE_TOOLS_NAME
 RUN yes | sdkmanager "platform-tools" > /dev/null
 RUN yes | sdkmanager "ndk;25.0.8775105" > /dev/null
 RUN yes | sdkmanager "platforms;android-30" > /dev/null
-RUN yes | sdkmanager "build-tools;30.0.3" > /dev/null
+RUN yes | sdkmanager "build-tools;34.0.0" > /dev/null
 
 # Install bundletool
 RUN wget -q https://github.com/google/bundletool/releases/download/1.4.0/bundletool-all-1.4.0.jar
@@ -40,11 +41,6 @@ RUN apt-get clean > /dev/null
 
 # Install Ruby and other maze-runner requirements
 RUN gem install bundler
-
-# Install node, npm and yarn
-RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
-RUN apt-get install -y nodejs
-RUN npm install --global yarn
 
 # Setup node credentials
 RUN rm -f ~/.npmrc

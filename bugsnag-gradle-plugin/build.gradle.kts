@@ -26,6 +26,14 @@ tasks.test {
     useJUnitPlatform()
 }
 
+kotlin {
+    jvmToolchain(11)
+}
+
+java {
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
 val bugsnagCliDir = File(rootProject.projectDir, "bugsnag-cli")
 
 /**
