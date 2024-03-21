@@ -2,6 +2,7 @@ package com.bugsnag.gradle.dsl
 
 import org.gradle.api.Named
 import org.gradle.api.model.ObjectFactory
+import java.io.File
 
 abstract class BugsnagVariantExtension : BugsnagCommonExtension, Named {
     override var enabled: Boolean = true
@@ -16,7 +17,7 @@ abstract class BugsnagVariantExtension : BugsnagCommonExtension, Named {
     override var uploadApiEndpointRootUrl: String? = null
     override var buildApiEndpointRootUrl: String? = null
     override var projectRoot: String? = null
-    override var ndkRoot: String? = null
+    override var ndkRoot: File? = null
     override var metadata: MutableMap<String, String>? = LinkedHashMap()
     override var builderName: String? = null
 }

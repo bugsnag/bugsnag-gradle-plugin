@@ -1,5 +1,6 @@
 package com.bugsnag.gradle
 
+import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.bugsnag.gradle.android.AbstractAndroidTask
 import com.bugsnag.gradle.android.AndroidVariant
@@ -116,8 +117,10 @@ class GradlePlugin @Inject constructor(
         task.symbolFiles.from(variant.nativeSymbols)
 
         val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
+        val ndkRoot =
+            variantConfiguration.ndkRoot ?: target.extensions.getByType(BaseExtension::class.java).ndkDirectory
         task.projectRoot.set(projectRoot)
-        task.ndkRoot.set(variantConfiguration.ndkRoot)
+        task.ndkRoot.set(ndkRoot)
         task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
 
         task.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))

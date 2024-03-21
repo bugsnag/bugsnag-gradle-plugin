@@ -1,5 +1,7 @@
 package com.bugsnag.gradle.dsl
 
+import java.io.File
+
 interface BugsnagCommonExtension {
     /**
      * Whether the Bugsnag Plugin is enabled, setting this to `false` will deactivate the plugin completely.
@@ -96,7 +98,7 @@ interface BugsnagCommonExtension {
     /**
      * Path to Android NDK installation ($ANDROID_NDK_ROOT is used if this is not set).
      */
-    var ndkRoot: String?
+    var ndkRoot: File?
 
     /**
      * Metadata to be included in builds / released on BugSnag. This will always include information gathered from

@@ -1,11 +1,12 @@
 package com.bugsnag.gradle.android
 
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
@@ -23,9 +24,8 @@ internal abstract class UploadNativeSymbolsTask : AbstractAndroidTask() {
     @get:Input
     abstract val projectRoot: Property<String>
 
-    @get:Input
-    @get:Optional
-    abstract val ndkRoot: Property<String>
+    @get:Internal
+    abstract val ndkRoot: DirectoryProperty
 
     @get:Nested
     abstract val androidVariantMetadata: AndroidVariantMetadata

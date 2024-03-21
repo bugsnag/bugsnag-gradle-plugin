@@ -3,6 +3,7 @@ package com.bugsnag.gradle.dsl
 import com.bugsnag.gradle.SYSTEM_CLI_FILE
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.model.ObjectFactory
+import java.io.File
 import javax.inject.Inject
 
 open class BugsnagExtension @Inject constructor(objects: ObjectFactory) : BugsnagCommonExtension {
@@ -18,7 +19,7 @@ open class BugsnagExtension @Inject constructor(objects: ObjectFactory) : Bugsna
     override var uploadApiEndpointRootUrl: String? = null
     override var buildApiEndpointRootUrl: String? = null
     override var projectRoot: String? = null
-    override var ndkRoot: String? = null
+    override var ndkRoot: File? = null
     override var metadata: MutableMap<String, String>? = LinkedHashMap()
     override var builderName: String? = null
 
