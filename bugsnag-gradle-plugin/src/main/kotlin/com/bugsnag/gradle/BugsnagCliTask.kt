@@ -30,9 +30,9 @@ internal abstract class BugsnagCliTask : DefaultTask() {
     protected open fun exec(vararg args: String, cliBuilder: BugsnagCliBuilder.() -> Unit) {
         exec {
             executable(globalOptions.executableFile.get())
-            globalOptions.addToUploadExecSpec(this)
             args(*args)
             cliBuilder()
+            globalOptions.addToExecSpec(this)
         }
     }
 

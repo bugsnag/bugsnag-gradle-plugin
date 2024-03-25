@@ -59,6 +59,12 @@ gradlePlugin {
     }
 }
 
+// license checking
+license {
+    header = rootProject.file("LICENSE")
+    ignoreFailures = true
+}
+
 publishing {
     publications {
     }

@@ -18,18 +18,6 @@ interface GlobalOptions {
 
     @get:Input
     @get:Optional
-    val overwrite: Property<Boolean>
-
-    @get:Input
-    @get:Optional
-    val timeout: Property<Int>
-
-    @get:Input
-    @get:Optional
-    val retries: Property<Int>
-
-    @get:Input
-    @get:Optional
     val uploadApiEndpointRootUrl: Property<String>
 
     @get:Input
@@ -44,22 +32,6 @@ interface GlobalOptions {
 internal fun GlobalOptions.addToExecSpec(execSpec: ExecSpec) {
     if (apiKey.isPresent) {
         execSpec.args("--api-key=${apiKey.get()}")
-    }
-}
-
-internal fun GlobalOptions.addToUploadExecSpec(execSpec: ExecSpec) {
-    addToExecSpec(execSpec)
-
-    if (overwrite.getOrElse(false)) {
-        execSpec.args("--overwrite")
-    }
-
-    if (timeout.getOrElse(0) > 0) {
-        execSpec.args("--timeout=${timeout.get()}")
-    }
-
-    if (retries.getOrElse(0) > 0) {
-        execSpec.args("--retries=${retries.get()}")
     }
 
     if (uploadApiEndpointRootUrl.isPresent) {
@@ -78,12 +50,9 @@ internal fun GlobalOptions.addToUploadExecSpec(execSpec: ExecSpec) {
 internal fun GlobalOptions.configureFrom(extension: BugsnagExtension, execOperations: ExecOperations) {
     executableFile.set(extension.getCliExecutable(execOperations))
 
-    extension.timeout?.let { timeout.set(it) }
-    extension.retries?.let { retries.set(it) }
     extension.apiKey?.let { apiKey.set(it) }
     extension.uploadApiEndpointRootUrl?.let { uploadApiEndpointRootUrl.set(it) }
     extension.buildApiEndpointRootUrl?.let { buildApiEndpointRootUrl.set(it) }
-    overwrite.set(extension.overwrite)
 }
 
 private fun BugsnagExtension.getCliExecutable(execOperations: ExecOperations): String {
