@@ -38,7 +38,6 @@ class UploadOptionsTest {
 
         val bugsnag = BugsnagExtension(objects).apply {
             cliPath = "/hello-bugsnag-cli"
-            failOnUploadError = false
             overwrite = true
             timeout = 987
             retries = 42
