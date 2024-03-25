@@ -11,13 +11,6 @@ interface BugsnagCommonExtension {
     var enabled: Boolean
 
     /**
-     * Whether the build should fail when an upload fails.
-     *
-     * Defaults to `true`
-     */
-    var failOnUploadError: Boolean
-
-    /**
      * If `true` overwrite any existing symbol files (`mapping.txt, `*.sym.so`, etc.) already uploaded.
      *
      * Defaults to `false`
