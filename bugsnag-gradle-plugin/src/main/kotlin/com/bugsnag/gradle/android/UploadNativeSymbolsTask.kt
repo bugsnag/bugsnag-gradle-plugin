@@ -1,5 +1,6 @@
 package com.bugsnag.gradle.android
 
+import com.bugsnag.gradle.AbstractUploadTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
@@ -12,7 +13,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.util.PatternSet
 
-internal abstract class UploadNativeSymbolsTask : AbstractAndroidTask() {
+internal abstract class UploadNativeSymbolsTask : AbstractUploadTask(), HasAndroidOptions {
     private val symbolFilePattern = PatternSet()
         .include("**/*.so.sym")
         .include("**/*.so")
@@ -40,6 +41,8 @@ internal abstract class UploadNativeSymbolsTask : AbstractAndroidTask() {
                 "variant" `=` androidVariantMetadata.variantName
                 "version-name" `=` androidVariantMetadata.versionName
                 "version-code" `=` androidVariantMetadata.versionCode.map { it.toString() }
+
+                androidOptions.addToCli(this)
             }
         }
     }

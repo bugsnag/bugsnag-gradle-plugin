@@ -1,5 +1,6 @@
 package com.bugsnag.gradle.android
 
+import com.bugsnag.gradle.AbstractUploadTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
@@ -12,7 +13,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
-internal abstract class UploadMappingTask : AbstractAndroidTask() {
+internal abstract class UploadMappingTask : AbstractUploadTask(), HasAndroidOptions {
     @get:InputFile
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val mappingFile: RegularFileProperty
@@ -36,6 +37,8 @@ internal abstract class UploadMappingTask : AbstractAndroidTask() {
             "variant" `=` androidVariantMetadata.variantName
             "version-name" `=` androidVariantMetadata.versionName
             "version-code" `=` androidVariantMetadata.versionCode.map { it.toString() }
+
+            androidOptions.addToCli(this)
         }
     }
 }
