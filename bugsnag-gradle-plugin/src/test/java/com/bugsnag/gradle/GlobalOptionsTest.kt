@@ -7,7 +7,6 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.DefaultExecSpec
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.any
 import org.mockito.Mockito.mock
@@ -15,18 +14,15 @@ import org.mockito.Mockito.`when` as whenever
 
 class GlobalOptionsTest {
     @Test
-    fun testUploadOptions() {
+    fun testGloablOptions() {
         val options = TestGlobalOptions()
         options.apiKey.set("abc123")
-        options.overwrite.set(true)
-        options.timeout.set(987)
-        options.retries.set(42)
 
         val execSpec = DefaultExecSpec(IdentityFileResolver())
-        options.addToUploadExecSpec(execSpec)
+        options.addToExecSpec(execSpec)
 
         assertEquals(
-            listOf("--api-key=abc123", "--overwrite", "--timeout=987", "--retries=42"),
+            listOf("--api-key=abc123"),
             execSpec.args
         )
     }
@@ -48,11 +44,6 @@ class GlobalOptionsTest {
         }
 
         options.configureFrom(bugsnag, execOperations)
-
         assertEquals("/hello-bugsnag-cli", options.executableFile.get())
-        assertTrue(options.overwrite.get())
-
-        assertEquals(987, options.timeout.get())
-        assertEquals(42, options.retries.get())
     }
 }

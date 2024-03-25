@@ -2,10 +2,10 @@ package com.bugsnag.gradle
 
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
-import com.bugsnag.gradle.android.AbstractAndroidTask
 import com.bugsnag.gradle.android.AndroidVariant
 import com.bugsnag.gradle.android.CreateBuildTask
 import com.bugsnag.gradle.android.ExtractBugsnagJniLibsTask
+import com.bugsnag.gradle.android.HasAndroidOptions
 import com.bugsnag.gradle.android.UploadBundleTask
 import com.bugsnag.gradle.android.UploadMappingTask
 import com.bugsnag.gradle.android.UploadNativeSymbolsTask
@@ -149,13 +149,20 @@ class GradlePlugin @Inject constructor(
             task.dependsOn(variant.bundleTaskName)
         }
 
-    private fun configureAndroidTask(task: AbstractAndroidTask, bugsnag: BugsnagExtension, variant: AndroidVariant) {
+    private fun configureAndroidTask(task: BugsnagCliTask, bugsnag: BugsnagExtension, variant: AndroidVariant) {
         configureBugsnagCliTask(task, bugsnag)
-        task.androidOptions.from(variant)
+
+        if (task is HasAndroidOptions) {
+            task.androidOptions.from(variant)
+        }
     }
 
     private fun configureBugsnagCliTask(task: BugsnagCliTask, bugsnag: BugsnagExtension) {
         task.group = TASK_GROUP
         task.globalOptions.configureFrom(bugsnag, execOperations)
+
+        if (task is AbstractUploadTask) {
+            task.uploadOptions.configureFrom(bugsnag)
+        }
     }
 }
