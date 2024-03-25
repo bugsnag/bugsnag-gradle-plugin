@@ -8,7 +8,6 @@ import javax.inject.Inject
 
 open class BugsnagExtension @Inject constructor(objects: ObjectFactory) : BugsnagCommonExtension {
     override var enabled: Boolean = true
-    override var failOnUploadError: Boolean = true
     override var overwrite: Boolean = false
     override var timeout: Int? = null
     override var retries: Int? = null
