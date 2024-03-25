@@ -6,7 +6,6 @@ import java.io.File
 
 abstract class BugsnagVariantExtension : BugsnagCommonExtension, Named {
     override var enabled: Boolean = true
-    override var failOnUploadError: Boolean = true
     override var overwrite: Boolean = false
     override var timeout: Int? = null
     override var retries: Int? = null
@@ -25,7 +24,6 @@ abstract class BugsnagVariantExtension : BugsnagCommonExtension, Named {
 internal fun BugsnagVariantExtension.mergeWith(objects: ObjectFactory, root: BugsnagExtension): BugsnagExtension {
     return objects.newInstance(BugsnagExtension::class.java).also {
         it.enabled = enabled
-        it.failOnUploadError = failOnUploadError
         it.overwrite = overwrite
         it.timeout = timeout ?: root.timeout
         it.retries = retries ?: root.retries
