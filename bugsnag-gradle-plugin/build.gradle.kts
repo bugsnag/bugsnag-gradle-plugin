@@ -27,11 +27,11 @@ tasks.test {
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(17)
 }
 
 java {
-    targetCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 val bugsnagCliDir = File(rootProject.projectDir, "bugsnag-cli")
