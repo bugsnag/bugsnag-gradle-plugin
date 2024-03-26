@@ -36,3 +36,11 @@ steps:
       - docker-compose#v3.7.0:
           run: bugsnag-gradle-plugin
           command: ['./gradlew', 'bugsnag-gradle-plugin:test']
+
+  - label: 'e2e tests'
+    timeout_in_minutes: 30
+    agents:
+      queue: macos-14
+    commands:
+      - bundle install
+      - bundle exec maze-runner
