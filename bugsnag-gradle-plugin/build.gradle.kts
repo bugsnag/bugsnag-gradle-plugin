@@ -52,7 +52,7 @@ tasks.processResources {
 
 gradlePlugin {
     plugins {
-        val bugsnagPlugin by creating {
+        create("bugsnagPlugin") {
             id = "com.bugsnag.gradle"
             implementationClass = "com.bugsnag.gradle.GradlePlugin"
         }
@@ -65,7 +65,58 @@ license {
     ignoreFailures = true
 }
 
-publishing {
-    publications {
+project.afterEvaluate {
+    publishing {
+        repositories {
+            maven {
+                if (project.findProperty("VERSION_NAME")?.toString()?.contains("SNAPSHOT") == true) {
+                    setUrl("https://oss.sonatype.org/content/repositories/snapshots/")
+                } else {
+                    setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+                }
+
+                credentials {
+                    username = project.findProperty("NEXUS_USERNAME")?.toString() ?: System.getenv("NEXUS_USERNAME")
+                    password = project.findProperty("NEXUS_PASSWORD")?.toString() ?: System.getenv("NEXUS_PASSWORD")
+                }
+            }
+        }
+
+        publications {
+            publications {
+                create("BugsnagGradlePlugin", MavenPublication::class) {
+                    from(components["java"])
+                    groupId = "com.bugsnag"
+                    artifactId = project.property("artefactId").toString()
+
+                    pom {
+                        name = project.property("pomName").toString()
+                        description = project.property("POM_DESCRIPTION").toString()
+                        uri(project.property("POM_URL").toString())
+
+                        licenses {
+                            license {
+                                name = project.property("POM_LICENCE_NAME")?.toString()
+                                url = project.property("POM_LICENCE_URL")?.toString()
+                                description = project.property("POM_LICENCE_DIST")?.toString()
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id = project.property("POM_DEVELOPER_ID")?.toString()
+                                name = project.property("POM_DEVELOPER_NAME")?.toString()
+                            }
+                        }
+
+                        scm {
+                            connection = project.property("POM_SCM_CONNECTION")?.toString()
+                            developerConnection = project.property("POM_SCM_DEV_CONNECTION")?.toString()
+                            url = project.property("POM_SCM_URL")?.toString()
+                        }
+                    }
+                }
+            }
+        }
     }
 }
