@@ -65,6 +65,11 @@ license {
     ignoreFailures = true
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 project.afterEvaluate {
     publishing {
         repositories {
@@ -92,7 +97,7 @@ project.afterEvaluate {
                     pom {
                         name = project.property("pomName").toString()
                         description = project.property("POM_DESCRIPTION").toString()
-                        uri(project.property("POM_URL").toString())
+                        url = project.property("POM_URL").toString()
 
                         licenses {
                             license {
@@ -118,5 +123,9 @@ project.afterEvaluate {
                 }
             }
         }
+    }
+
+    signing {
+        sign(publishing.publications["BugsnagGradlePlugin"])
     }
 }
