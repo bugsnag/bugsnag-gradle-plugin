@@ -1,6 +1,7 @@
 plugins {
     id("java-gradle-plugin")
     id("org.jetbrains.kotlin.jvm")
+    id("com.gradle.plugin-publish")
     id("maven-publish")
     id("signing")
 
@@ -51,10 +52,16 @@ tasks.processResources {
 }
 
 gradlePlugin {
+    website.set(project.findProperty("POM_URL")?.toString())
+    vcsUrl.set(project.findProperty("POM_SCM_URL")?.toString())
+
     plugins {
         create("bugsnagPlugin") {
             id = "com.bugsnag.gradle"
+            displayName = project.property("pomName").toString()
+            description = project.property("POM_DESCRIPTION").toString()
             implementationClass = "com.bugsnag.gradle.GradlePlugin"
+            tags.set(listOf("bugsnag", "proguard", "android", "upload"))
         }
     }
 }
