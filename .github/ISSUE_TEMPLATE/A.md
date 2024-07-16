@@ -7,7 +7,7 @@ labels: ''
 assignees: ''
 
 ---
-Please checkout our [documentation](https://docs.bugsnag.com/build-integrations/gradle/) for guides, references and tutorials.
+Please checkout our [documentation](https://docs.bugsnag.com/build-integrations/gradle-plugin/) for guides, references and tutorials.
 
 If you have questions about your integration please contact us at [support@bugsnag.com](mailto:support@bugsnag.com).
 

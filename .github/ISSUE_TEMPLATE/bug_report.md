@@ -19,9 +19,10 @@ A clear and concise description of what the bug is.
 4. See error
 
 ### Environment
-* Gradle version: 
+* Android Studio version:
+* Gradle version:
 * Android Gradle Plugin (AGP) version:
-* Bugsnag Gradle Plugin version: 
+* Bugsnag Gradle Plugin version:
 * Bugsnag manifest section (if modified):
 
 <!--
