@@ -32,6 +32,9 @@ internal abstract class UploadMappingTask : AbstractUploadTask(), HasAndroidOpti
     @TaskAction
     fun uploadFile() {
         execUpload("android-proguard", mappingFile.get().asFile.absolutePath) {
+            if (globalOptions.uploadApiEndpointRootUrl.isPresent) {
+                "upload-api-root-rul" `=` globalOptions.uploadApiEndpointRootUrl.get()
+            }
             "build-uuid" `=` buildUuid
             "dex-files" `=` dexClassesDir
             "variant" `=` androidVariantMetadata.variantName
