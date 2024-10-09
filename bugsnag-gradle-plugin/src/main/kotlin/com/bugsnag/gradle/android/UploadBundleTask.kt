@@ -18,7 +18,7 @@ internal abstract class UploadBundleTask : AbstractUploadTask() {
     fun performUpload() {
         execUpload("android-aab", bundleFile.get().asFile.toString()) {
             if (globalOptions.uploadApiEndpointRootUrl.isPresent) {
-                "upload-api-root-rul" `=` globalOptions.uploadApiEndpointRootUrl.get()
+                "upload-api-root-url" `=` globalOptions.uploadApiEndpointRootUrl.get()
             }
             "project-root" `=` projectRoot
         }

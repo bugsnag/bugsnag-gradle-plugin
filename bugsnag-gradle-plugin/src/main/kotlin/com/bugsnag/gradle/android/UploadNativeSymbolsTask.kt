@@ -36,7 +36,7 @@ internal abstract class UploadNativeSymbolsTask : AbstractUploadTask(), HasAndro
         symbolFiles.asFileTree.matching(symbolFilePattern).onEach { symFile ->
             execUpload("android-ndk", symFile.absolutePath) {
                 if (globalOptions.uploadApiEndpointRootUrl.isPresent) {
-                    "upload-api-root-rul" `=` globalOptions.uploadApiEndpointRootUrl.get()
+                    "upload-api-root-url" `=` globalOptions.uploadApiEndpointRootUrl.get()
                 }
                 "project-root" `=` projectRoot
                 "android-ndk-root" `=` ndkRoot
