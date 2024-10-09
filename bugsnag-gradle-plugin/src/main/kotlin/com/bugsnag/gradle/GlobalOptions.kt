@@ -34,14 +34,6 @@ internal fun GlobalOptions.addToExecSpec(execSpec: ExecSpec) {
         execSpec.args("--api-key=${apiKey.get()}")
     }
 
-    if (uploadApiEndpointRootUrl.isPresent) {
-        execSpec.args("--upload-api-root-url=${uploadApiEndpointRootUrl.get()}")
-    }
-
-    if (buildApiEndpointRootUrl.isPresent) {
-        execSpec.args("--build-api-root-url=${buildApiEndpointRootUrl.get()}")
-    }
-
     if (port.isPresent) {
         execSpec.args("--port=${port.get()}")
     }
