@@ -1,9 +1,9 @@
 plugins {
     id("java-gradle-plugin")
     id("org.jetbrains.kotlin.jvm")
-    id("com.gradle.plugin-publish")
     id("maven-publish")
     id("signing")
+    id("com.gradle.plugin-publish")
 
     id("com.github.hierynomus.license")
     id("io.gitlab.arturbosch.detekt")
@@ -58,7 +58,7 @@ gradlePlugin {
     plugins {
         create("bugsnagPlugin") {
             id = "com.bugsnag.gradle"
-            displayName = project.property("pomName").toString()
+            displayName = project.property("POM_NAME").toString()
             description = project.property("POM_DESCRIPTION").toString()
             implementationClass = "com.bugsnag.gradle.GradlePlugin"
             tags.set(listOf("bugsnag", "proguard", "android", "upload"))
@@ -77,62 +77,72 @@ java {
     withSourcesJar()
 }
 
-project.afterEvaluate {
-    publishing {
-        repositories {
-            maven {
-                if (project.findProperty("VERSION_NAME")?.toString()?.contains("SNAPSHOT") == true) {
-                    setUrl("https://oss.sonatype.org/content/repositories/snapshots/")
-                } else {
-                    setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-                }
+publishing {
+    repositories {
+        maven {
+            if (project.findProperty("VERSION_NAME")?.toString()?.contains("SNAPSHOT") == true) {
+                setUrl("https://oss.sonatype.org/content/repositories/snapshots/")
+            } else {
+                setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
+            }
 
-                credentials {
-                    username = project.findProperty("NEXUS_USERNAME")?.toString() ?: System.getenv("NEXUS_USERNAME")
-                    password = project.findProperty("NEXUS_PASSWORD")?.toString() ?: System.getenv("NEXUS_PASSWORD")
-                }
+            credentials {
+                username = project.findProperty("NEXUS_USERNAME")?.toString() ?: System.getenv("NEXUS_USERNAME")
+                password = project.findProperty("NEXUS_PASSWORD")?.toString() ?: System.getenv("NEXUS_PASSWORD")
             }
         }
+    }
 
+    publications {
         publications {
-            publications {
-                create("BugsnagGradlePlugin", MavenPublication::class) {
-                    from(components["java"])
-                    groupId = "com.bugsnag"
+            create<MavenPublication>("BugsnagGradlePlugin") {
+                from(components["java"])
+                groupId = "com.bugsnag"
+                afterEvaluate {
                     artifactId = project.property("artefactId").toString()
+                }
 
-                    pom {
-                        name = project.property("pomName").toString()
-                        description = project.property("POM_DESCRIPTION").toString()
-                        url = project.property("POM_URL").toString()
+                pom {
+                    name = project.property("POM_NAME").toString()
+                    description = project.property("POM_DESCRIPTION").toString()
+                    url = project.property("POM_URL").toString()
 
-                        licenses {
-                            license {
-                                name = project.property("POM_LICENCE_NAME")?.toString()
-                                url = project.property("POM_LICENCE_URL")?.toString()
-                                description = project.property("POM_LICENCE_DIST")?.toString()
-                            }
+                    licenses {
+                        license {
+                            name = project.property("POM_LICENCE_NAME")?.toString()
+                            url = project.property("POM_LICENCE_URL")?.toString()
+                            description = project.property("POM_LICENCE_DIST")?.toString()
                         }
+                    }
 
-                        developers {
-                            developer {
-                                id = project.property("POM_DEVELOPER_ID")?.toString()
-                                name = project.property("POM_DEVELOPER_NAME")?.toString()
-                            }
+                    developers {
+                        developer {
+                            id = project.property("POM_DEVELOPER_ID")?.toString()
+                            name = project.property("POM_DEVELOPER_NAME")?.toString()
                         }
+                    }
 
-                        scm {
-                            connection = project.property("POM_SCM_CONNECTION")?.toString()
-                            developerConnection = project.property("POM_SCM_DEV_CONNECTION")?.toString()
-                            url = project.property("POM_SCM_URL")?.toString()
-                        }
+                    scm {
+                        connection = project.property("POM_SCM_CONNECTION")?.toString()
+                        developerConnection = project.property("POM_SCM_DEV_CONNECTION")?.toString()
+                        url = project.property("POM_SCM_URL")?.toString()
                     }
                 }
             }
         }
     }
+}
 
-    signing {
-        sign(publishing.publications["BugsnagGradlePlugin"])
+signing {
+    sign(publishing.publications["BugsnagGradlePlugin"])
+}
+
+tasks.named("publishBugsnagGradlePluginPublicationToMavenRepository") {
+    dependsOn("signPluginMavenPublication")
+}
+
+afterEvaluate {
+    tasks.named("publishPluginMavenPublicationToMavenRepository") {
+        dependsOn("signBugsnagGradlePluginPublication")
     }
 }
