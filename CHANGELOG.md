@@ -1,3 +1,9 @@
+## TBD
+
+### Enhancements
+
+- Update bugsnag-cli dependency to [v2.6.2](https://github.com/bugsnag/bugsnag-cli/blob/main/CHANGELOG.md#262-2024-10-17) [38](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/38)
+
 ## 0.2.0 (2024-10-09)
 
 ### Enhancements
