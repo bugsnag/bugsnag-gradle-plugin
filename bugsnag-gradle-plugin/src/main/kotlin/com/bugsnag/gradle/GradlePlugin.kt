@@ -13,8 +13,8 @@ import com.bugsnag.gradle.android.configureFrom
 import com.bugsnag.gradle.android.from
 import com.bugsnag.gradle.android.onAndroidVariant
 import com.bugsnag.gradle.dsl.BugsnagExtension
+import com.bugsnag.gradle.dsl.VariantConfiguration
 import com.bugsnag.gradle.dsl.debug
-import com.bugsnag.gradle.dsl.mergeWith
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -45,10 +45,7 @@ class GradlePlugin @Inject constructor(
         }
 
         target.onAndroidVariant { variant: AndroidVariant ->
-            val variantConfiguration = bugsnag.variants
-                .findByName(variant.name)
-                ?.mergeWith(target.objects, bugsnag)
-                ?: bugsnag
+            val variantConfiguration = VariantConfiguration(bugsnag, bugsnag.variants.findByName(variant.name))
 
             if (!variantConfiguration.enabled) {
                 return@onAndroidVariant
@@ -83,7 +80,7 @@ class GradlePlugin @Inject constructor(
                 target.tasks.register(
                     variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "NativeSymbols"),
                     UploadNativeSymbolsTask::class.java,
-                    configureUploadNativeSymbolsTask(bugsnag, variant, target)
+                    configureUploadNativeSymbolsTask(variantConfiguration, variant, target)
                 )
             }
         }
@@ -109,7 +106,7 @@ class GradlePlugin @Inject constructor(
     }
 
     private fun configureUploadNativeSymbolsTask(
-        variantConfiguration: BugsnagExtension,
+        variantConfiguration: VariantConfiguration,
         variant: AndroidVariant,
         target: Project
     ) = Action<UploadNativeSymbolsTask> { task ->
@@ -126,7 +123,7 @@ class GradlePlugin @Inject constructor(
         task.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
     }
 
-    private fun configureCreateBuildTask(target: Project, bugsnag: BugsnagExtension, variant: AndroidVariant) =
+    private fun configureCreateBuildTask(target: Project, bugsnag: VariantConfiguration, variant: AndroidVariant) =
         Action<CreateBuildTask> { task ->
             task.group = TASK_GROUP
             task.globalOptions.configureFrom(bugsnag, execOperations)
@@ -137,7 +134,7 @@ class GradlePlugin @Inject constructor(
             task.projectPath.set(task.project.projectDir.toString())
         }
 
-    private fun configureUploadBundleTask(target: Project, bugsnag: BugsnagExtension, variant: AndroidVariant) =
+    private fun configureUploadBundleTask(target: Project, bugsnag: VariantConfiguration, variant: AndroidVariant) =
         Action<UploadBundleTask> { task ->
             configureBugsnagCliTask(task, bugsnag)
             task.bundleFile.set(variant.bundleFile)
@@ -149,7 +146,7 @@ class GradlePlugin @Inject constructor(
             task.dependsOn(variant.bundleTaskName)
         }
 
-    private fun configureAndroidTask(task: BugsnagCliTask, bugsnag: BugsnagExtension, variant: AndroidVariant) {
+    private fun configureAndroidTask(task: BugsnagCliTask, bugsnag: VariantConfiguration, variant: AndroidVariant) {
         configureBugsnagCliTask(task, bugsnag)
 
         if (task is HasAndroidOptions) {
@@ -157,7 +154,7 @@ class GradlePlugin @Inject constructor(
         }
     }
 
-    private fun configureBugsnagCliTask(task: BugsnagCliTask, bugsnag: BugsnagExtension) {
+    private fun configureBugsnagCliTask(task: BugsnagCliTask, bugsnag: VariantConfiguration) {
         task.group = TASK_GROUP
         task.globalOptions.configureFrom(bugsnag, execOperations)
 
