@@ -64,6 +64,7 @@ RUN ./gradlew
 # Copy remaining Gradle files
 COPY build.gradle.kts /app/
 COPY settings.gradle.kts /app/
+COPY gradle.properties /app/
 
 # Copy source and git config
 COPY bugsnag-gradle-plugin/ bugsnag-gradle-plugin/

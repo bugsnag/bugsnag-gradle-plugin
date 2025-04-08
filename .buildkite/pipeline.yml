@@ -19,7 +19,7 @@ steps:
     plugins:
       - docker-compose#v3.7.0:
           run: bugsnag-gradle-plugin
-          command: ['./gradlew', 'bugsnag-gradle-plugin:detekt']
+          command: ['./gradlew', 'detekt']
 
   - label: ':android: Ktlint'
     depends_on: 'bgp-ci'
@@ -27,7 +27,7 @@ steps:
     plugins:
       - docker-compose#v3.7.0:
           run: bugsnag-gradle-plugin
-          command: ['./gradlew', 'bugsnag-gradle-plugin:ktlintCheck']
+          command: ['./gradlew', 'ktlintCheck']
 
   - label: ':android: Unit tests'
     depends_on: 'bgp-ci'
@@ -35,7 +35,7 @@ steps:
     plugins:
       - docker-compose#v3.7.0:
           run: bugsnag-gradle-plugin
-          command: ['./gradlew', 'bugsnag-gradle-plugin:test']
+          command: ['./gradlew', 'test']
 
   - label: 'e2e tests'
     timeout_in_minutes: 30
