@@ -14,8 +14,12 @@ internal class VariantConfiguration(
     val buildUuid: String? get() = variantExtension?.buildUuid ?: extension.buildUuid
     val versionNameOverride: String? get() = variantExtension?.versionNameOverride ?: extension.versionNameOverride
     val versionCodeOverride: Int? get() = variantExtension?.versionCodeOverride ?: extension.versionCodeOverride
-    val uploadApiEndpointRootUrl: String? get() = variantExtension?.uploadApiEndpointRootUrl
-    val buildApiEndpointRootUrl: String? get() = variantExtension?.buildApiEndpointRootUrl
+    val uploadApiEndpointRootUrl: String?
+        get() = variantExtension?.uploadApiEndpointRootUrl
+            ?: extension.uploadApiEndpointRootUrl
+    val buildApiEndpointRootUrl: String?
+        get() = variantExtension?.buildApiEndpointRootUrl
+            ?: extension.buildApiEndpointRootUrl
     val projectRoot: String? get() = variantExtension?.projectRoot ?: extension.projectRoot
     val ndkRoot: File? get() = variantExtension?.ndkRoot ?: extension.ndkRoot
     val metadata: MutableMap<String, String>? = variantExtension?.metadata ?: extension.metadata
