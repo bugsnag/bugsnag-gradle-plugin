@@ -6,7 +6,6 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.model.ObjectFactory
 import org.gradle.process.internal.DefaultExecSpec
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test

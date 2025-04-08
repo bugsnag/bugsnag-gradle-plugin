@@ -18,4 +18,7 @@ abstract class BugsnagVariantExtension : BugsnagCommonExtension, Named {
     override var ndkRoot: File? = null
     override var metadata: MutableMap<String, String>? = LinkedHashMap()
     override var builderName: String? = null
+
+    var autoUploadBundle: Boolean = false
+    var autoCreateBuild: Boolean? = null
 }

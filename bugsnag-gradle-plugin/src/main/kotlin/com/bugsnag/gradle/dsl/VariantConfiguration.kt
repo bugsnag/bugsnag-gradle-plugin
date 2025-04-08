@@ -21,6 +21,9 @@ internal class VariantConfiguration(
     val metadata: MutableMap<String, String>? = variantExtension?.metadata ?: extension.metadata
     val builderName: String? get() = variantExtension?.builderName ?: extension.builderName
 
+    val autoUploadBundle: Boolean = variantExtension?.autoUploadBundle == true
+    val autoCreateBuild: Boolean = variantExtension?.autoCreateBuild ?: variantExtension?.autoUploadBundle ?: false
+
     val cliPath: String? get() = extension.cliPath
     val enableLegacyNativeExtraction: Boolean get() = extension.enableLegacyNativeExtraction
 }

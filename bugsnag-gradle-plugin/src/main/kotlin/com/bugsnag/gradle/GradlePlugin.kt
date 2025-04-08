@@ -15,6 +15,7 @@ import com.bugsnag.gradle.android.onAndroidVariant
 import com.bugsnag.gradle.dsl.BugsnagExtension
 import com.bugsnag.gradle.dsl.VariantConfiguration
 import com.bugsnag.gradle.dsl.debug
+import com.bugsnag.gradle.util.wireFinalizer
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -51,17 +52,25 @@ class GradlePlugin @Inject constructor(
                 return@onAndroidVariant
             }
 
-            target.tasks.register(
+            val uploadBundleTask = target.tasks.register(
                 variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "Bundle"),
                 UploadBundleTask::class.java,
                 configureUploadBundleTask(target, variantConfiguration, variant)
             )
 
-            target.tasks.register(
+            if (variantConfiguration.autoUploadBundle) {
+                target.wireFinalizer(uploadBundleTask, variant.bundleTaskName)
+            }
+
+            val createBuildTask = target.tasks.register(
                 variant.name.toTaskName(prefix = CREATE_BUILD_TASK_PREFIX, suffix = "Build"),
                 CreateBuildTask::class.java,
                 configureCreateBuildTask(target, variantConfiguration, variant)
             )
+
+            if (variantConfiguration.autoCreateBuild) {
+                target.wireFinalizer(createBuildTask, variant.bundleTaskName)
+            }
 
             if (variant.obfuscationMappingFile != null) {
                 target.tasks.register(

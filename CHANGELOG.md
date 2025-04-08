@@ -1,3 +1,10 @@
+## TBD
+
+### Enhancements
+
+- Automatically upload configured (`bugsnag.variants.*.autoUploadBundle`) bundles when they are created [#45](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/45)
+- Automatically create builds for configured bundle variants (`bugsnag.variants.*.autoCreateBuild`) [#45](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/45)
+
 ## 0.3.0 (2024-10-23)
 
 ### Enhancements
