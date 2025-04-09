@@ -1,6 +1,6 @@
 package com.bugsnag.gradle
 
-import com.bugsnag.gradle.dsl.BugsnagExtension
+import com.bugsnag.gradle.dsl.VariantConfiguration
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
@@ -34,7 +34,7 @@ internal fun UploadOptions.addToExecSpec(execSpec: ExecSpec) {
     }
 }
 
-internal fun UploadOptions.configureFrom(extension: BugsnagExtension) {
+internal fun UploadOptions.configureFrom(extension: VariantConfiguration) {
     extension.timeout?.let { timeout.set(it) }
     extension.retries?.let { retries.set(it) }
     overwrite.set(extension.overwrite)

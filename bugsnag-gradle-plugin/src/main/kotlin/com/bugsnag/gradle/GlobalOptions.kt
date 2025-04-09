@@ -1,6 +1,6 @@
 package com.bugsnag.gradle
 
-import com.bugsnag.gradle.dsl.BugsnagExtension
+import com.bugsnag.gradle.dsl.VariantConfiguration
 import com.bugsnag.gradle.util.NullOutputStream
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
@@ -39,7 +39,7 @@ internal fun GlobalOptions.addToExecSpec(execSpec: ExecSpec) {
     }
 }
 
-internal fun GlobalOptions.configureFrom(extension: BugsnagExtension, execOperations: ExecOperations) {
+internal fun GlobalOptions.configureFrom(extension: VariantConfiguration, execOperations: ExecOperations) {
     executableFile.set(extension.getCliExecutable(execOperations))
 
     extension.apiKey?.let { apiKey.set(it) }
@@ -47,7 +47,7 @@ internal fun GlobalOptions.configureFrom(extension: BugsnagExtension, execOperat
     extension.buildApiEndpointRootUrl?.let { buildApiEndpointRootUrl.set(it) }
 }
 
-private fun BugsnagExtension.getCliExecutable(execOperations: ExecOperations): String {
+private fun VariantConfiguration.getCliExecutable(execOperations: ExecOperations): String {
     if (cliPath == SYSTEM_CLI_FILE) {
         return systemCliIfInstalled(execOperations)
             ?: throw BugsnagCliException(
