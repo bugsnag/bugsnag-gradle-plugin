@@ -1,6 +1,6 @@
 package com.bugsnag.gradle.android
 
-import com.bugsnag.gradle.dsl.BugsnagExtension
+import com.bugsnag.gradle.dsl.VariantConfiguration
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
@@ -22,7 +22,7 @@ internal interface AndroidVariantMetadata {
     val applicationId: Property<String>
 }
 
-internal fun AndroidVariantMetadata.configureFrom(bugsnag: BugsnagExtension, variant: AndroidVariant) {
+internal fun AndroidVariantMetadata.configureFrom(bugsnag: VariantConfiguration, variant: AndroidVariant) {
     variantName.set(variant.name)
     variant.applicationId?.let { applicationId.set(it) }
 
