@@ -4,6 +4,7 @@
 
 - Automatically upload configured (`bugsnag.variants.*.autoUploadBundle`) bundles when they are created [#45](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/45)
 - Automatically create builds for configured bundle variants (`bugsnag.variants.*.autoCreateBuild`) [#45](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/45)
+- Update bugsnag-cli dependency to [v3.0.0](https://github.com/bugsnag/bugsnag-cli/blob/next/CHANGELOG.md#300---2025-04-07) [47](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/47)
 
 ## 0.3.0 (2024-10-23)
 
