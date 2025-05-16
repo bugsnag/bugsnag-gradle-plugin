@@ -1,6 +1,7 @@
 package com.bugsnag.gradle
 
 import com.bugsnag.gradle.dsl.BugsnagExtension
+import com.bugsnag.gradle.dsl.VariantConfiguration
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.model.ObjectFactory
@@ -43,7 +44,8 @@ class GlobalOptionsTest {
             retries = 42
         }
 
-        options.configureFrom(bugsnag, execOperations)
+        val config = VariantConfiguration(bugsnag)
+        options.configureFrom(config, execOperations)
         assertEquals("/hello-bugsnag-cli", options.executableFile.get())
     }
 }

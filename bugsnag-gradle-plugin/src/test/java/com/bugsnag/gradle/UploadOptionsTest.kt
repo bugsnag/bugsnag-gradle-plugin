@@ -1,11 +1,11 @@
 package com.bugsnag.gradle
 
 import com.bugsnag.gradle.dsl.BugsnagExtension
+import com.bugsnag.gradle.dsl.VariantConfiguration
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.model.ObjectFactory
 import org.gradle.process.internal.DefaultExecSpec
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -22,7 +22,7 @@ class UploadOptionsTest {
         val execSpec = DefaultExecSpec(IdentityFileResolver())
         options.addToExecSpec(execSpec)
 
-        Assertions.assertEquals(
+        assertEquals(
             listOf("--overwrite", "--timeout=987", "--retries=42"),
             execSpec.args
         )
@@ -43,7 +43,9 @@ class UploadOptionsTest {
             retries = 42
         }
 
-        options.configureFrom(bugsnag)
+        val config = VariantConfiguration(bugsnag)
+
+        options.configureFrom(config)
 
         assertTrue(options.overwrite.get())
 
