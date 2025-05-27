@@ -93,14 +93,15 @@ internal abstract class BugsnagCliTask : DefaultTask() {
     }
 
     private fun extractErrorMessage(bytes: ByteArray): String {
-        return bytes
-            .inputStream()
-            .reader()
-            .useLines { lines ->
-                lines.filter { it.startsWith(CLI_LOG_ERROR) || it.contains("error:") }
-                    .map { it.removePrefix(CLI_LOG_ERROR).substringAfter("error: ").trim() }
-                    .joinToString("\n")
-            }
+        val lines = bytes.inputStream().reader().readLines()
+
+        val result = lines
+            .asSequence()
+            .filter { it.startsWith(CLI_LOG_ERROR) || it.contains("error:") }
+            .map { it.removePrefix(CLI_LOG_ERROR).substringAfter("error: ").trim() }
+            .joinToString("\n")
+
+        return result.ifBlank { lines.joinToString("\n") }
     }
 
     private fun relayCliLogging(bytes: ByteArray) {

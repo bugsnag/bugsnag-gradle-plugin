@@ -1,7 +1,7 @@
 package com.bugsnag.gradle.android
 
 import com.bugsnag.gradle.BugsnagCliTask
-import com.bugsnag.gradle.dsl.BugsnagExtension
+import com.bugsnag.gradle.dsl.VariantConfiguration
 import org.gradle.api.Project
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.MapProperty
@@ -85,7 +85,7 @@ private const val PROP_OS_VERSION = "os.version"
 private const val PROP_JAVA_VERSION = "java.version"
 private const val PROP_USER_NAME = "user.name"
 
-internal fun CreateBuildTask.SystemMetadata.configureFrom(project: Project, bugsnag: BugsnagExtension) {
+internal fun CreateBuildTask.SystemMetadata.configureFrom(project: Project, bugsnag: VariantConfiguration) {
     val providerFactory = project.providers
 
     osArch.set(providerFactory.systemProperty(PROP_OS_ARCH))
