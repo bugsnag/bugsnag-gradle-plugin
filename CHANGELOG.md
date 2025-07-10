@@ -2,7 +2,7 @@
 
 ### Enhancements
 
-- Update bugsnag-cli dependency to [v3.2.0](https://github.com/bugsnag/bugsnag-cli/blob/next/CHANGELOG.md#320---2025-07-02) [tbd](tbd)
+- Update bugsnag-cli dependency to [v3.2.0](https://github.com/bugsnag/bugsnag-cli/blob/next/CHANGELOG.md#320---2025-07-02) [#51](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/51)
 
 ## 0.4.0 (2025-04-15)
 
