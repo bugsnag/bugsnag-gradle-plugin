@@ -45,4 +45,4 @@ steps:
       JAVA_VERSION: '17'
     commands:
       - bundle install
-      - bundle exec maze-runner
+      - bundle exec maze-runner --port=$((MAZE_RUNNER_PORT))
