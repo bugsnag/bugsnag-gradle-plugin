@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
     id("java-gradle-plugin")
     id("org.jetbrains.kotlin.jvm")
@@ -8,6 +10,8 @@ plugins {
     id("com.github.hierynomus.license")
     id("io.gitlab.arturbosch.detekt")
     id("org.jlleitschuh.gradle.ktlint")
+
+    id("libs.plugins.vanniktech.mavenPublish")
 }
 
 group = "com.bugsnag"
@@ -77,56 +81,34 @@ java {
     withSourcesJar()
 }
 
-publishing {
-    repositories {
-        maven {
-            if (project.findProperty("VERSION_NAME")?.toString()?.contains("SNAPSHOT") == true) {
-                setUrl("https://oss.sonatype.org/content/repositories/snapshots/")
-            } else {
-                setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-            }
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
-            credentials {
-                username = project.findProperty("NEXUS_USERNAME")?.toString() ?: System.getenv("NEXUS_USERNAME")
-                password = project.findProperty("NEXUS_PASSWORD")?.toString() ?: System.getenv("NEXUS_PASSWORD")
+    signAllPublications()
+
+    pom {
+        name = "Bugsnag Gradle Plugin"
+        description = "Gradle plugin for uploading Bugsnag Proguard mapping files"
+        inceptionYear = "2025"
+        url = "https://github.com/bugsnag/bugsnag-gradle-plugin"
+        licenses {
+            license {
+                name = "The MIT License"
+                url = "https://opensource.org/licenses/MIT"
+                distribution = "repo"
             }
         }
-    }
-
-    afterEvaluate {
-        publications {
-            publications {
-                getByName<MavenPublication>("pluginMaven") {
-                    groupId = "com.bugsnag"
-                    artifactId = project.property("POM_ARTIFACT_ID").toString()
-
-                    pom {
-                        name = project.property("POM_NAME").toString()
-                        description = project.property("POM_DESCRIPTION").toString()
-                        url = project.property("POM_URL").toString()
-
-                        licenses {
-                            license {
-                                name = project.property("POM_LICENCE_NAME")?.toString()
-                                url = project.property("POM_LICENCE_URL")?.toString()
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                id = project.property("POM_DEVELOPER_ID")?.toString()
-                                name = project.property("POM_DEVELOPER_NAME")?.toString()
-                            }
-                        }
-
-                        scm {
-                            connection = project.property("POM_SCM_CONNECTION")?.toString()
-                            developerConnection = project.property("POM_SCM_DEV_CONNECTION")?.toString()
-                            url = project.property("POM_SCM_URL")?.toString()
-                        }
-                    }
-                }
+        developers {
+            developer {
+                id = "bugsnag"
+                name = "Bugsnag Team"
+                email = "support@bugsnag.com"
             }
+        }
+        scm {
+            url = "https://github.com/bugsnag/bugsnag-gradle-plugin"
+            connection = "scm:git:git://github.com/bugsnag/bugsnag-gradle-plugin.git"
+            developerConnection = "scm:git:ssh://git@github.com/bugsnag/bugsnag-gradle-plugin.git"
         }
     }
 }
