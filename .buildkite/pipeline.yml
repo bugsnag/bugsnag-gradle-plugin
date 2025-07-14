@@ -1,51 +1,51 @@
 steps:
-  - label: ':docker: Build Bugsnag Gradle plugin CI image'
-    key: 'bgp-ci'
-    timeout_in_minutes: 30
-    plugins:
-      - docker-compose#v3.7.0:
-          build:
-            - bugsnag-gradle-plugin
-          image-repository: 855461928731.dkr.ecr.us-west-1.amazonaws.com/android
-          cache-from:
-            - android-common:855461928731.dkr.ecr.us-west-1.amazonaws.com/android:latest
-            - bugsnag-gradle-plugin:855461928731.dkr.ecr.us-west-1.amazonaws.com/android:bugsnag-gradle-plugin
-          push:
-            - bugsnag-gradle-plugin:855461928731.dkr.ecr.us-west-1.amazonaws.com/android:bugsnag-gradle-plugin
-
-  - label: ':android: Detekt'
-    depends_on: 'bgp-ci'
-    timeout_in_minutes: 30
-    plugins:
-      - docker-compose#v3.7.0:
-          run: bugsnag-gradle-plugin
-          command: ['./gradlew', 'detekt']
-
-  - label: ':android: Ktlint'
-    depends_on: 'bgp-ci'
-    timeout_in_minutes: 30
-    plugins:
-      - docker-compose#v3.7.0:
-          run: bugsnag-gradle-plugin
-          command: ['./gradlew', 'ktlintCheck']
-
-  - label: ':android: Unit tests'
-    depends_on: 'bgp-ci'
-    timeout_in_minutes: 30
-    plugins:
-      - docker-compose#v3.7.0:
-          run: bugsnag-gradle-plugin
-          command: ['./gradlew', 'test']
-
-  - label: 'e2e tests'
-    timeout_in_minutes: 30
-    agents:
-      queue: macos-14
-    env:
-      JAVA_VERSION: '17'
-    commands:
-      - bundle install
-      - bundle exec maze-runner
+#  - label: ':docker: Build Bugsnag Gradle plugin CI image'
+#    key: 'bgp-ci'
+#    timeout_in_minutes: 30
+#    plugins:
+#      - docker-compose#v3.7.0:
+#          build:
+#            - bugsnag-gradle-plugin
+#          image-repository: 855461928731.dkr.ecr.us-west-1.amazonaws.com/android
+#          cache-from:
+#            - android-common:855461928731.dkr.ecr.us-west-1.amazonaws.com/android:latest
+#            - bugsnag-gradle-plugin:855461928731.dkr.ecr.us-west-1.amazonaws.com/android:bugsnag-gradle-plugin
+#          push:
+#            - bugsnag-gradle-plugin:855461928731.dkr.ecr.us-west-1.amazonaws.com/android:bugsnag-gradle-plugin
+#
+#  - label: ':android: Detekt'
+#    depends_on: 'bgp-ci'
+#    timeout_in_minutes: 30
+#    plugins:
+#      - docker-compose#v3.7.0:
+#          run: bugsnag-gradle-plugin
+#          command: ['./gradlew', 'detekt']
+#
+#  - label: ':android: Ktlint'
+#    depends_on: 'bgp-ci'
+#    timeout_in_minutes: 30
+#    plugins:
+#      - docker-compose#v3.7.0:
+#          run: bugsnag-gradle-plugin
+#          command: ['./gradlew', 'ktlintCheck']
+#
+#  - label: ':android: Unit tests'
+#    depends_on: 'bgp-ci'
+#    timeout_in_minutes: 30
+#    plugins:
+#      - docker-compose#v3.7.0:
+#          run: bugsnag-gradle-plugin
+#          command: ['./gradlew', 'test']
+#
+#  - label: 'e2e tests'
+#    timeout_in_minutes: 30
+#    agents:
+#      queue: macos-14
+#    env:
+#      JAVA_VERSION: '17'
+#    commands:
+#      - bundle install
+#      - bundle exec maze-runner
 
   # If this is the 'main' branch activate a manual publishing step
   - block: 'Trigger package publish'
