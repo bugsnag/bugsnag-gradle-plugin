@@ -60,6 +60,6 @@ steps:
     agents:
       queue: macos-15
     commands:
-      - scripts/docker-publish.sh
+      - scripts/publish.sh
     env:
       JAVA_VERSION: 17
