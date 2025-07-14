@@ -43,9 +43,11 @@ android {
     }
 }
 
+val mazeRunnerPort = System.getenv("MAZE_RUNNER_PORT") ?: "9339"
+
 bugsnag {
-    uploadApiEndpointRootUrl = "http://localhost:9339/builds"
-    buildApiEndpointRootUrl = "http://localhost:9339/builds"
+    uploadApiEndpointRootUrl = "http://localhost:$mazeRunnerPort/builds"
+    buildApiEndpointRootUrl = "http://localhost:$mazeRunnerPort/builds"
 
     builderName = "test_user"
 
