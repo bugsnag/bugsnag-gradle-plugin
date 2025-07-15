@@ -46,3 +46,20 @@ steps:
     commands:
       - bundle install
       - bundle exec maze-runner --port=$((MAZE_RUNNER_PORT))
+
+  # If this is the 'main' branch activate a manual publishing step
+  - block: 'Trigger package publish'
+    if: build.branch == "main"
+    key: trigger-publish
+    blocked_state: passed
+
+  - label: 'Publish :rocket:'
+    if: build.branch == "main"
+    depends_on: 'trigger-publish'
+    timeout_in_minutes: 30
+    agents:
+      queue: macos-15
+    commands:
+      - scripts/publish.sh
+    env:
+      JAVA_VERSION: 17
