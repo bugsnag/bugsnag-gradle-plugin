@@ -1,26 +1,27 @@
 plugins {
     id("java-gradle-plugin")
-    id("org.jetbrains.kotlin.jvm")
     id("maven-publish")
     id("signing")
-    id("com.gradle.plugin-publish")
 
-    id("com.github.hierynomus.license")
-    id("io.gitlab.arturbosch.detekt")
-    id("org.jlleitschuh.gradle.ktlint")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.gradle.pluginPublish)
+
+    alias(libs.plugins.license)
+    alias(libs.plugins.detekt)
+    alias(libs.plugins.ktlint)
 }
 
 group = "com.bugsnag"
 version = project.findProperty("VERSION_NAME") ?: "1.0-SNAPSHOT"
 
 dependencies {
-    compileOnly("com.android.tools.build:gradle:8.0.0")
+    compileOnly(libs.android.plugin)
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.10")
+    implementation(libs.kotlin.stdlib)
 
     testImplementation(platform("org.junit:junit-bom:5.9.1"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-    testImplementation("org.mockito:mockito-all:2.0.2-beta")
+    testImplementation(libs.mockito)
 }
 
 tasks.test {
