@@ -3,7 +3,7 @@ steps:
     key: 'bgp-ci'
     timeout_in_minutes: 30
     plugins:
-      - docker-compose#v3.7.0:
+      - docker-compose#v4.7.0:
           build:
             - bugsnag-gradle-plugin
           image-repository: 855461928731.dkr.ecr.us-west-1.amazonaws.com/android
@@ -17,7 +17,7 @@ steps:
     depends_on: 'bgp-ci'
     timeout_in_minutes: 30
     plugins:
-      - docker-compose#v3.7.0:
+      - docker-compose#v4.7.0:
           run: bugsnag-gradle-plugin
           command: ['./gradlew', 'detekt']
 
@@ -25,7 +25,7 @@ steps:
     depends_on: 'bgp-ci'
     timeout_in_minutes: 30
     plugins:
-      - docker-compose#v3.7.0:
+      - docker-compose#v4.7.0:
           run: bugsnag-gradle-plugin
           command: ['./gradlew', 'ktlintCheck']
 
@@ -33,7 +33,7 @@ steps:
     depends_on: 'bgp-ci'
     timeout_in_minutes: 30
     plugins:
-      - docker-compose#v3.7.0:
+      - docker-compose#v4.7.0:
           run: bugsnag-gradle-plugin
           command: ['./gradlew', 'test']
 
