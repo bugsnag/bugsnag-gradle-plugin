@@ -48,4 +48,33 @@ class GlobalOptionsTest {
         options.configureFrom(config, execOperations)
         assertEquals("/hello-bugsnag-cli", options.executableFile.get())
     }
+
+    @Test
+    fun testDisableHttp2DefaultsToFalse() {
+        val options = TestGlobalOptions()
+        val objects = mock(ObjectFactory::class.java)
+        val execOperations = mock(ExecOperations::class.java)
+
+        whenever(objects.domainObjectContainer(any(Class::class.java)))
+            .thenReturn(mock(NamedDomainObjectContainer::class.java))
+
+        val config = VariantConfiguration(BugsnagExtension(objects))
+        options.configureFrom(config, execOperations)
+        assertEquals(false, options.disableHttp2.get())
+    }
+
+    @Test
+    fun testDisableHttp2CanBeEnabled() {
+        val options = TestGlobalOptions()
+        val objects = mock(ObjectFactory::class.java)
+        val execOperations = mock(ExecOperations::class.java)
+
+        whenever(objects.domainObjectContainer(any(Class::class.java)))
+            .thenReturn(mock(NamedDomainObjectContainer::class.java))
+
+        val bugsnag = BugsnagExtension(objects).apply { disableHttp2 = true }
+        val config = VariantConfiguration(bugsnag)
+        options.configureFrom(config, execOperations)
+        assertEquals(true, options.disableHttp2.get())
+    }
 }

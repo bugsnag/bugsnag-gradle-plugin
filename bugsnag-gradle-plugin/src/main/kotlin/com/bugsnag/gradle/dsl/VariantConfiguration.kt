@@ -30,4 +30,5 @@ internal class VariantConfiguration(
 
     val cliPath: String? get() = extension.cliPath
     val enableLegacyNativeExtraction: Boolean get() = extension.enableLegacyNativeExtraction
+    val disableHttp2: Boolean get() = extension.disableHttp2
 }

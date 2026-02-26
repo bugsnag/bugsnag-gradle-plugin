@@ -40,6 +40,15 @@ open class BugsnagExtension @Inject constructor(objects: ObjectFactory) : Bugsna
      */
     var enableLegacyNativeExtraction: Boolean = false
 
+    /**
+     * If `true`, forces `bugsnag-cli` to use HTTP/1.1 instead of HTTP/2 by setting the `GODEBUG=http2client=0`
+     * environment variable before invoking the CLI. This can be used to work around `PROTOCOL_ERROR` failures
+     * that occur when the upload server does not handle HTTP/2 correctly.
+     *
+     * Defaults to `false`
+     */
+    var disableHttp2: Boolean = false
+
     val variants: NamedDomainObjectContainer<BugsnagVariantExtension> =
         objects.domainObjectContainer(BugsnagVariantExtension::class.java)
 

@@ -27,6 +27,10 @@ interface GlobalOptions {
     @get:Input
     @get:Optional
     val port: Property<Int>
+
+    @get:Input
+    @get:Optional
+    val disableHttp2: Property<Boolean>
 }
 
 internal fun GlobalOptions.addToExecSpec(execSpec: ExecSpec) {
@@ -45,6 +49,7 @@ internal fun GlobalOptions.configureFrom(extension: VariantConfiguration, execOp
     extension.apiKey?.let { apiKey.set(it) }
     extension.uploadApiEndpointRootUrl?.let { uploadApiEndpointRootUrl.set(it) }
     extension.buildApiEndpointRootUrl?.let { buildApiEndpointRootUrl.set(it) }
+    disableHttp2.set(extension.disableHttp2)
 }
 
 private fun VariantConfiguration.getCliExecutable(execOperations: ExecOperations): String {

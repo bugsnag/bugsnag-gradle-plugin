@@ -85,6 +85,12 @@ internal abstract class BugsnagCliTask : DefaultTask() {
                 it.executable(globalOptions.executableFile.get())
                 BugsnagCliBuilder(it).cliBuilder()
 
+                // Force HTTP/1.1 when requested to work around PROTOCOL_ERROR failures
+                // that can occur when the upload server does not handle HTTP/2 correctly.
+                if (globalOptions.disableHttp2.getOrElse(false)) {
+                    it.environment("GODEBUG", "http2client=0")
+                }
+
                 it.standardOutput = stdout
                 it.errorOutput = stderr
                 it.isIgnoreExitValue = true
