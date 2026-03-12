@@ -5,8 +5,12 @@ on:
     types: [update-cli]
   workflow_dispatch:
     inputs:
-      cli_version:
-        description: 'Version of the CLI to update to'
+      target_submodule:
+        description: 'Submodule to update'
+        required: true
+        type: string
+      target_version:
+        description: 'Version to update to'
         required: true
         type: string
 
@@ -23,45 +27,45 @@ jobs:
         with:
           ref: next
 
+      - name: Check branch
+        run: |
+          BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          if [ "$BRANCH" = "next" ]; then
+            echo "Already on next branch"
+          else
+            echo "ERROR: Not on next branch, on $BRANCH"
+            exit 1
+          fi
+
       - name: Configure Git
         run: |
           git config --global user.name "Bumpsnag Bot"
           git config --global user.email ""
 
-      - name: get git history
-        run: git fetch --prune --unshallow
+      - name: Fetch full git history
+        run: git fetch --depth=0
 
-      - name: Install ruby
+      - name: Install Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.3
+          bundler-cache: true
 
-      - name: Install libcurl4-openssl-dev and net-tools
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install libcurl4-openssl-dev net-tools
+          sudo apt-get install -y libcurl4-openssl-dev net-tools
 
-      - name: Install dependencies
-        run: bundle install
-
-      - name: Remove leading 'v'
-        shell: bash
+      - name: Update submodule
         run: |
-          echo "CLI_VERSION=${RAW_VERSION#v}" >> $GITHUB_ENV
-
-      - run: |
-          echo "Updating $TARGET_SUBMODULE to version $TARGET_VERSION" 
-          bundle exec bumpsnag update-submodule $TARGET_SUBMODULE $TARGET_VERSION
-
-      - name: List current branch name
-        id: current-branch
-        run: echo "branch=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
+          echo "Updating $TARGET_SUBMODULE to version $TARGET_VERSION"
+          bundle exec bumpsnag update-submodule "$TARGET_SUBMODULE" "$TARGET_VERSION"
 
       - name: Create pull request
-        if: ${{ steps.current-branch.outputs.branch != 'next'}}
-        run: >
-          gh pr create -B next
-          -H bumpsnag-$TARGET_SUBMODULE-$TARGET_VERSION
-          --title "Update $TARGET_SUBMODULE to version $RAW_VERSION"
-          --body 'Created by bumpsnag'
-          --reviewer joshedney
+        run: |
+          VERSION_DISPLAY="${TARGET_VERSION#v}"
+          gh pr create -B next \
+            -H "bumpsnag-$TARGET_SUBMODULE-$TARGET_VERSION" \
+            --title "Update $TARGET_SUBMODULE to version $VERSION_DISPLAY" \
+            --body 'Created by bumpsnag' \
+            --reviewer joshedney
