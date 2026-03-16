@@ -6,3 +6,5 @@ gem 'bugsnag-maze-runner', '~>9.0'
 unless ENV['GITHUB_ACTIONS'].nil?
   gem 'bumpsnag', git: 'https://github.com/bugsnag/platforms-bumpsnag', branch: 'main'
 end
+
+gem 'bumpsnag', git: 'https://github.com/bugsnag/platforms-bumpsnag', branch: 'je/debug-2026'
