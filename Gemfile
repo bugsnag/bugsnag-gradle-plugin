@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem 'bugsnag-maze-runner', '~>9.0'
+gem 'bugsnag-maze-runner', '~>11.0'
 
 # Only install bumpsnag if we're using Github actions
 unless ENV['GITHUB_ACTIONS'].nil?
