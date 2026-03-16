@@ -24,18 +24,18 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: next
+        # with:
+        #   ref: next
 
-      - name: Check branch
-        run: |
-          BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          if [ "$BRANCH" = "next" ]; then
-            echo "Already on next branch"
-          else
-            echo "ERROR: Not on next branch, on $BRANCH"
-            exit 1
-          fi
+      # - name: Check branch
+      #   run: |
+      #     BRANCH=$(git rev-parse --abbrev-ref HEAD)
+      #     if [ "$BRANCH" = "next" ]; then
+      #       echo "Already on next branch"
+      #     else
+      #       echo "ERROR: Not on next branch, on $BRANCH"
+      #       exit 1
+      #     fi
 
       - name: Configure Git
         run: |
@@ -43,18 +43,17 @@ jobs:
           git config --global user.email ""
 
       - name: Fetch full git history
-        run: git fetch --depth=0
-
-      - name: Install Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 3.3
-          bundler-cache: true
+        run: git fetch --prune --unshallow
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libcurl4-openssl-dev net-tools
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3
+          bundler-cache: true
 
       - name: Update submodule
         run: |
