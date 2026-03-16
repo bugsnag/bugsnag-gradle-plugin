@@ -24,8 +24,8 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: next
+        # with:
+        #   ref: next
 
       - name: Check branch
         run: |
