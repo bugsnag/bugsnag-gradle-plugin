@@ -74,3 +74,6 @@ COPY Gemfile LICENSE /app/
 
 # Copy any other test associated files
 COPY features/ features/
+
+# Install maze-runner
+RUN bundle install

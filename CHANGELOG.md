@@ -1,11 +1,3 @@
-# Changelog
-
-## 1.1.0 (2026-03-16)
-
-### Dependencies
-
-Update bugsnag-cli to [v3.9.0](https://github.com/bugsnag/bugsnag-cli/releases/tag/v3.9.0) [#62](git@github.com:bugsnag/bugsnag-gradle-plugin/pull/62)
-
 ## 1.0.0 (2025-07-14)
 
 ### Enhancements
@@ -35,4 +27,3 @@ Update bugsnag-cli to [v3.9.0](https://github.com/bugsnag/bugsnag-cli/releases/t
 ## 0.1.0 (2024-03-27)
 
 Initial Release of BugSnag Gradle Plugin
-

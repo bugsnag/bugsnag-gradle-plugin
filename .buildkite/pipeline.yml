@@ -3,7 +3,7 @@ steps:
     key: 'bgp-ci'
     timeout_in_minutes: 30
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v3.7.0:
           build:
             - bugsnag-gradle-plugin
           image-repository: 855461928731.dkr.ecr.us-west-1.amazonaws.com/android
@@ -17,7 +17,7 @@ steps:
     depends_on: 'bgp-ci'
     timeout_in_minutes: 30
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v3.7.0:
           run: bugsnag-gradle-plugin
           command: ['./gradlew', 'detekt']
 
@@ -25,7 +25,7 @@ steps:
     depends_on: 'bgp-ci'
     timeout_in_minutes: 30
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v3.7.0:
           run: bugsnag-gradle-plugin
           command: ['./gradlew', 'ktlintCheck']
 
@@ -33,32 +33,16 @@ steps:
     depends_on: 'bgp-ci'
     timeout_in_minutes: 30
     plugins:
-      - docker-compose#v4.7.0:
+      - docker-compose#v3.7.0:
           run: bugsnag-gradle-plugin
           command: ['./gradlew', 'test']
 
   - label: 'e2e tests'
     timeout_in_minutes: 30
     agents:
-      queue: macos-15
+      queue: macos-14
     env:
       JAVA_VERSION: '17'
     commands:
       - bundle install
       - bundle exec maze-runner --port=$((MAZE_RUNNER_PORT))
-
-  - block: 'Trigger package publish'
-    if: build.branch == "main"
-    key: trigger-publish
-    blocked_state: passed
-
-  - label: 'Publish :rocket:'
-    if: build.branch == "main"
-    depends_on: 'trigger-publish'
-    timeout_in_minutes: 30
-    agents:
-      queue: macos-15
-    commands:
-      - scripts/publish.sh
-    env:
-      JAVA_VERSION: 17
