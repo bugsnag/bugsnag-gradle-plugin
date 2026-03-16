@@ -24,18 +24,18 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
-        # with:
-        #   ref: next
+        with:
+          ref: next
 
-      # - name: Check branch
-      #   run: |
-      #     BRANCH=$(git rev-parse --abbrev-ref HEAD)
-      #     if [ "$BRANCH" = "next" ]; then
-      #       echo "Already on next branch"
-      #     else
-      #       echo "ERROR: Not on next branch, on $BRANCH"
-      #       exit 1
-      #     fi
+      - name: Check branch
+        run: |
+          BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          if [ "$BRANCH" = "next" ]; then
+            echo "Already on next branch"
+          else
+            echo "ERROR: Not on next branch, on $BRANCH"
+            exit 1
+          fi
 
       - name: Configure Git
         run: |
