@@ -11,8 +11,8 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
-group = "com.bugsnag"
-version = project.findProperty("VERSION_NAME") ?: "1.0-SNAPSHOT"
+version = "${project.properties["VERSION_NAME"]}"
+group = "${project.properties["GROUP"]}"
 
 dependencies {
     compileOnly(libs.android.plugin)
@@ -81,12 +81,8 @@ java {
 publishing {
     repositories {
         maven {
-            if (project.findProperty("VERSION_NAME")?.toString()?.contains("SNAPSHOT") == true) {
-                setUrl("https://oss.sonatype.org/content/repositories/snapshots/")
-            } else {
-                setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-            }
-
+            name = "ossrhStaging"
+            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
             credentials {
                 username = project.findProperty("NEXUS_USERNAME")?.toString() ?: System.getenv("NEXUS_USERNAME")
                 password = project.findProperty("NEXUS_PASSWORD")?.toString() ?: System.getenv("NEXUS_PASSWORD")

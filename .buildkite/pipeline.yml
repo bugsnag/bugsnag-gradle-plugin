@@ -48,12 +48,12 @@ steps:
       - bundle exec maze-runner --port=$((MAZE_RUNNER_PORT))
 
   - block: 'Trigger package publish'
-    if: build.branch == "main"
+    # if: build.branch == "main"
     key: trigger-publish
     blocked_state: passed
 
   - label: 'Publish :rocket:'
-    if: build.branch == "main"
+    # if: build.branch == "main"
     depends_on: 'trigger-publish'
     timeout_in_minutes: 30
     agents:

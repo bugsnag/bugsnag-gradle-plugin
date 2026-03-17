@@ -24,9 +24,11 @@ mkdir -p "$GRADLE_DIR"
   echo "nexusPassword=$PUBLISH_PASS"
   echo "mavenCentralUsername=$PUBLISH_USER"
   echo "mavenCentralPassword=$PUBLISH_PASS"
+  echo "gradle.publish.key=$GRADLE_PUBLISH_KEY"
+  echo "gradle.publish.secret=$GRADLE_PUBLISH_SECRET"
 } >> "$GRADLE_PROPERTIES"
 
-# === Build, Publish and Close===
-./gradlew clean publishAllPublicationsToMavenRepository publishPlugins --no-daemon --max-workers=1
+# === Build, Publish and Close=== publishPlugins
+./gradlew clean publishAllPublicationsToOssrhStagingRepository --no-daemon --max-workers=1
 
 echo "Go to https://central.sonatype.com/ to release the final artefact."
