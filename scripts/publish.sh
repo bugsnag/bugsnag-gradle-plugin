@@ -28,7 +28,7 @@ mkdir -p "$GRADLE_DIR"
   echo "gradle.publish.secret=$GRADLE_PUBLISH_SECRET"
 } >> "$GRADLE_PROPERTIES"
 
-# === Build, Publish and Close=== publishPlugins
+# === Build, Publish and Close===
 ./gradlew clean publishAllPublicationsToOssrhStagingRepository publishPlugins --no-daemon --max-workers=1
 
 echo "--- Closing staging repository"
