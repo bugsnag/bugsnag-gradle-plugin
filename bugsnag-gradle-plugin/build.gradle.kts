@@ -11,8 +11,8 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
-group = "com.bugsnag"
-version = project.findProperty("VERSION_NAME") ?: "1.0-SNAPSHOT"
+version = "${project.properties["VERSION_NAME"]}"
+group = "${project.properties["GROUP"]}"
 
 dependencies {
     compileOnly(libs.android.plugin)
@@ -81,51 +81,42 @@ java {
 publishing {
     repositories {
         maven {
-            if (project.findProperty("VERSION_NAME")?.toString()?.contains("SNAPSHOT") == true) {
-                setUrl("https://oss.sonatype.org/content/repositories/snapshots/")
-            } else {
-                setUrl("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
-            }
-
+            name = "ossrhStaging"
+            url = uri("https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/")
             credentials {
                 username = project.findProperty("NEXUS_USERNAME")?.toString() ?: System.getenv("NEXUS_USERNAME")
                 password = project.findProperty("NEXUS_PASSWORD")?.toString() ?: System.getenv("NEXUS_PASSWORD")
             }
         }
     }
+}
 
-    afterEvaluate {
-        publications {
-            publications {
-                getByName<MavenPublication>("pluginMaven") {
-                    groupId = "com.bugsnag"
-                    artifactId = project.property("POM_ARTIFACT_ID").toString()
+afterEvaluate {
+    publishing.publications {
+        withType<MavenPublication> {
+            pom {
+                name.set(project.property("POM_NAME").toString())
+                description.set(project.property("POM_DESCRIPTION").toString())
+                url.set(project.property("POM_URL").toString())
 
-                    pom {
-                        name = project.property("POM_NAME").toString()
-                        description = project.property("POM_DESCRIPTION").toString()
-                        url = project.property("POM_URL").toString()
-
-                        licenses {
-                            license {
-                                name = project.property("POM_LICENCE_NAME")?.toString()
-                                url = project.property("POM_LICENCE_URL")?.toString()
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                id = project.property("POM_DEVELOPER_ID")?.toString()
-                                name = project.property("POM_DEVELOPER_NAME")?.toString()
-                            }
-                        }
-
-                        scm {
-                            connection = project.property("POM_SCM_CONNECTION")?.toString()
-                            developerConnection = project.property("POM_SCM_DEV_CONNECTION")?.toString()
-                            url = project.property("POM_SCM_URL")?.toString()
-                        }
+                licenses {
+                    license {
+                        name.set(project.property("POM_LICENCE_NAME")?.toString())
+                        url.set(project.property("POM_LICENCE_URL")?.toString())
                     }
+                }
+
+                developers {
+                    developer {
+                        id.set(project.property("POM_DEVELOPER_ID")?.toString())
+                        name.set(project.property("POM_DEVELOPER_NAME")?.toString())
+                    }
+                }
+
+                scm {
+                    connection.set(project.property("POM_SCM_CONNECTION")?.toString())
+                    developerConnection.set(project.property("POM_SCM_DEV_CONNECTION")?.toString())
+                    url.set(project.property("POM_SCM_URL")?.toString())
                 }
             }
         }

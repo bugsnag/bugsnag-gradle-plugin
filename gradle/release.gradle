@@ -1,0 +1,59 @@
+apply plugin: "maven-publish"
+apply plugin: "signing"
+
+String pomName = project.getProperties().get("POM_NAME")
+archivesBaseName = project.getProperties().get("POM_ARTIFACT_ID")
+version = "${project.VERSION_NAME}"
+group = "${project.GROUP}"
+
+// https://developer.android.com/studio/build/maven-publish-plugin
+project.afterEvaluate {
+    publishing {
+        repositories {
+            maven {
+                name = 'ossrhStaging'
+                url = "https://ossrh-staging-api.central.sonatype.com/service/local/staging/deploy/maven2/"
+                credentials {
+                    username = project.hasProperty("NEXUS_USERNAME") ? "$NEXUS_USERNAME" : System.getenv("NEXUS_USERNAME")
+                    password = project.hasProperty("NEXUS_PASSWORD") ? "$NEXUS_PASSWORD" : System.getenv("NEXUS_PASSWORD")
+                }
+            }
+        }
+
+        publications {
+            SDK(MavenPublication) {
+                from components.release
+                groupId = "com.bugsnag"
+                artifactId = archivesBaseName
+                version = version
+
+                pom {
+                    name = pomName
+                    description = project.POM_DESCRIPTION
+                    url = project.POM_URL
+                    licenses {
+                        license {
+                            name = project.POM_LICENCE_NAME
+                            url = project.POM_LICENCE_URL
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = project.POM_DEVELOPER_ID
+                            name = project.POM_DEVELOPER_NAME
+                        }
+                    }
+                    scm {
+                        connection = project.POM_SCM_CONNECTION
+                        developerConnection = project.POM_SCM_DEV_CONNECTION
+                        url = project.POM_SCM_URL
+                    }
+                }
+            }
+        }
+    }
+
+    signing {
+        sign publishing.publications
+    }
+}
