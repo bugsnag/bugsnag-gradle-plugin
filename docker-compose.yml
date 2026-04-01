@@ -4,3 +4,13 @@ services:
       context: .
       dockerfile: dockerfiles/Dockerfile.android-ci
 
+  android-publisher:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.publisher
+    environment:
+      KEY:
+      KEY_ID:
+      KEY_PASS:
+      PUBLISH_USER:
+      PUBLISH_PASS:

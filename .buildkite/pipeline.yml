@@ -47,18 +47,25 @@ steps:
       - bundle install
       - bundle exec maze-runner --port=$((MAZE_RUNNER_PORT))
 
+  # If there is a tag present activate a manual publishing step
+
   - block: 'Trigger package publish'
     if: build.branch == "main"
-    key: trigger-publish
-    blocked_state: passed
+    key: 'trigger-publish'
+    blocked_state: 'passed'
 
   - label: 'Publish :rocket:'
     if: build.branch == "main"
-    depends_on: 'trigger-publish'
+    depends_on: 'bgp-ci'
     timeout_in_minutes: 30
-    agents:
-      queue: macos-15
-    commands:
-      - scripts/publish.sh
     env:
-      JAVA_VERSION: 17
+      BUILDKITE_PLUGIN_S3_SECRETS_BUCKET_PREFIX: bugsnag-android-publish
+    plugins:
+      - artifacts#v1.9.0:
+          upload:
+            # Release artifacts
+            - bugsnag-gradle-plugin/build/libs/bugsnag-gradle-plugin-1.0.0.jar
+            - bugsnag-gradle-plugin/build/libs/bugsnag-gradle-plugin-1.0.0-javadoc.jar
+            - bugsnag-gradle-plugin/build/libs/bugsnag-gradle-plugin-1.0.0-sources.jar
+      - docker-compose#v4.7.0:
+          no-cache: true
