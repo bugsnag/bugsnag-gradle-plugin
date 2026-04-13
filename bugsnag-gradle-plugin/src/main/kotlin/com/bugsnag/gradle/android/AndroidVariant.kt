@@ -10,7 +10,6 @@ import com.bugsnag.gradle.toTaskName
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
-import org.gradle.api.plugins.BasePlugin
 import org.gradle.api.provider.Provider
 
 internal data class AndroidVariant(
@@ -32,13 +31,17 @@ internal data class AndroidVariant(
         get() = name.toTaskName(prefix = "bundle")
 }
 
+@Suppress("DEPRECATION")
 internal fun Project.isMinifyEnabledFor(variant: Variant): Boolean {
     return variant is CanMinifyCode && variant.isMinifyEnabled || hasDexguardPlugin()
 }
 
+@Suppress("SwallowedException")
 internal fun Project.onAndroidVariant(consumer: (variant: AndroidVariant) -> Unit) {
     try {
-        project.plugins.withType(BasePlugin::class.java) {
+        // Must be called during plugin configuration, not afterEvaluate
+        // onVariants callback requires early registration
+        extensions.findByType(AndroidComponentsExtension::class.java)?.let {
             collectVariants(consumer)
         }
     } catch (ex: NoClassDefFoundError) {
@@ -46,6 +49,7 @@ internal fun Project.onAndroidVariant(consumer: (variant: AndroidVariant) -> Uni
     }
 }
 
+@Suppress("SwallowedException")
 private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit) {
     try {
         val androidExtension = extensions.findByType(AndroidComponentsExtension::class.java)
@@ -89,7 +93,7 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                 )
             }
         }
-    } catch (ex: NoClassDefFoundError) {
+    } catch (@Suppress("UNUSED_VARIABLE") ex: NoClassDefFoundError) {
         // ignore these - AGP is not available in this Project
     }
 }

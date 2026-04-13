@@ -1,6 +1,6 @@
 package com.bugsnag.gradle
 
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.bugsnag.gradle.android.AndroidVariant
 import com.bugsnag.gradle.android.CreateBuildTask
@@ -123,10 +123,27 @@ class GradlePlugin @Inject constructor(
         task.symbolFiles.from(variant.nativeSymbols)
 
         val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
-        val ndkRoot =
-            variantConfiguration.ndkRoot ?: target.extensions.getByType(BaseExtension::class.java).ndkDirectory
+
+        if (variantConfiguration.ndkRoot != null) {
+            // User explicitly configured NDK root
+            task.ndkRoot.set(variantConfiguration.ndkRoot)
+        } else {
+            // Try to get NDK directory from AGP, with graceful fallback
+            @Suppress("TooGenericExceptionCaught")
+            try {
+                val ndkProvider = target.extensions
+                    .getByType(AndroidComponentsExtension::class.java)
+                    .sdkComponents
+                    .ndkDirectory
+                task.ndkRoot.set(ndkProvider)
+            } catch (ex: Exception) {
+                // Could be NoSuchElementException, NullPointerException, or other issues
+                // NDK may not be available in all configurations
+                System.err.println("Warning: Could not resolve NDK directory from AGP configuration: ${ex.message}")
+            }
+        }
+
         task.projectRoot.set(projectRoot)
-        task.ndkRoot.set(ndkRoot)
         task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
 
         task.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
