@@ -131,11 +131,11 @@ class GradlePlugin @Inject constructor(
             // Try to get NDK directory from AGP, with graceful fallback
             @Suppress("TooGenericExceptionCaught")
             try {
-                val ndkProvider = target.extensions
-                    .getByType(AndroidComponentsExtension::class.java)
-                    .sdkComponents
-                    .ndkDirectory
-                task.ndkRoot.set(ndkProvider)
+                val androidExtension = target.extensions.findByType(AndroidComponentsExtension::class.java)
+                if (androidExtension != null) {
+                    val ndkProvider = androidExtension.sdkComponents.ndkDirectory
+                    ndkProvider.let { task.ndkRoot.set(it) }
+                }
             } catch (ex: Exception) {
                 // Could be NoSuchElementException, NullPointerException, or other issues
                 // NDK may not be available in all configurations
