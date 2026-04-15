@@ -114,6 +114,7 @@ class GradlePlugin @Inject constructor(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private fun configureUploadNativeSymbolsTask(
         variantConfiguration: VariantConfiguration,
         variant: AndroidVariant,
@@ -128,23 +129,32 @@ class GradlePlugin @Inject constructor(
             // User explicitly configured NDK root
             task.ndkRoot.set(variantConfiguration.ndkRoot)
         } else {
-            // Try to get NDK directory from AGP, with graceful fallback
-            @Suppress("TooGenericExceptionCaught")
-            try {
+            // Try to get NDK directory from AGP, with graceful fallback to dummy directory
+            val ndkDirProvider = try {
                 val androidExtension = target.extensions.findByType(AndroidComponentsExtension::class.java)
                 if (androidExtension != null) {
                     try {
-                        val ndkProvider = androidExtension.sdkComponents.ndkDirectory
-                        task.ndkRoot.set(ndkProvider)
-                    } catch (ex: Exception) {
-                        // NDK directory provider threw - NDK is not available
+                        androidExtension.sdkComponents.ndkDirectory
+                    } catch (ex: RuntimeException) {
+                        // NDK directory provider threw - NDK is not available, use dummy
                         System.err.println("Warning: NDK is not available in this configuration: ${ex.message}")
+                        null
                     }
+                } else {
+                    null
                 }
-            } catch (ex: Exception) {
-                // Could be NoSuchElementException, NullPointerException, or other issues
-                // NDK may not be available in all configurations
+            } catch (ex: RuntimeException) {
+                // Could not get AndroidComponentsExtension
                 System.err.println("Warning: Could not resolve NDK directory from AGP configuration: ${ex.message}")
+                null
+            }
+
+            if (ndkDirProvider != null) {
+                task.ndkRoot.set(ndkDirProvider)
+            } else {
+                // Set a dummy directory when NDK is not available
+                // Use a concrete File object since buildDirectory provider may not be resolved at task execution time
+                task.ndkRoot.set(java.io.File(target.buildDir, "dummy-ndk"))
             }
         }
 

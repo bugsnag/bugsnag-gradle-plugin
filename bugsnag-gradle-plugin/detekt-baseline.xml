@@ -7,5 +7,6 @@
     <ID>SwallowedException:AndroidVariant.kt$ex: NoClassDefFoundError</ID>
     <ID>SwallowedException:GlobalOptions.kt$ex: Exception</ID>
     <ID>TooGenericExceptionCaught:GlobalOptions.kt$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:GradlePlugin.kt$ex: RuntimeException</ID>
   </CurrentIssues>
 </SmellBaseline>
