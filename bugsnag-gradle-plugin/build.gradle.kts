@@ -124,12 +124,26 @@ afterEvaluate {
 }
 
 afterEvaluate {
-    signing {
-        sign(publishing.publications["pluginMaven"])
+    // Only sign if not a test build and signing key is configured (for release builds)
+    val isTestBuild = version.toString().contains("test")
+    if (!isTestBuild && (project.hasProperty("signing.secretKeyRingFile") || System.getenv("GPG_KEY_ID") != null)) {
+        signing {
+            sign(publishing.publications["pluginMaven"])
+        }
+    }
+
+    // Disable signing for plugin marker publication in test builds
+    if (isTestBuild) {
+        tasks.withType<Sign>().configureEach {
+            enabled = false
+        }
     }
 }
 
 // Workaround for https://github.com/gradle/gradle/issues/15568
 tasks.withType<AbstractPublishToMaven>().configureEach {
-    mustRunAfter(tasks.withType<Sign>())
+    val signTasks = tasks.withType<Sign>().filter { it.enabled }
+    if (signTasks.isNotEmpty()) {
+        mustRunAfter(signTasks)
+    }
 }

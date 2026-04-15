@@ -133,8 +133,13 @@ class GradlePlugin @Inject constructor(
             try {
                 val androidExtension = target.extensions.findByType(AndroidComponentsExtension::class.java)
                 if (androidExtension != null) {
-                    val ndkProvider = androidExtension.sdkComponents.ndkDirectory
-                    ndkProvider.let { task.ndkRoot.set(it) }
+                    try {
+                        val ndkProvider = androidExtension.sdkComponents.ndkDirectory
+                        task.ndkRoot.set(ndkProvider)
+                    } catch (ex: Exception) {
+                        // NDK directory provider threw - NDK is not available
+                        System.err.println("Warning: NDK is not available in this configuration: ${ex.message}")
+                    }
                 }
             } catch (ex: Exception) {
                 // Could be NoSuchElementException, NullPointerException, or other issues
