@@ -3,6 +3,8 @@ package com.bugsnag.gradle.android
 import com.bugsnag.gradle.AbstractUploadTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.internal.provider.AbstractProperty.PropertyQueryException
+import org.gradle.api.internal.provider.MissingValueException
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
@@ -39,7 +41,18 @@ internal abstract class UploadNativeSymbolsTask : AbstractUploadTask(), HasAndro
                     "upload-api-root-url" `=` globalOptions.uploadApiEndpointRootUrl.get()
                 }
                 "project-root" `=` projectRoot
-                "android-ndk-root" `=` ndkRoot
+
+                // Try to use ndkRoot if available, otherwise let the CLI handle the default
+                try {
+                    if (ndkRoot.isPresent) {
+                        "android-ndk-root" `=` ndkRoot
+                    }
+                } catch (_: MissingValueException) {
+                    // NDK not available, don't set the option and let the CLI handle it
+                } catch (_: PropertyQueryException) {
+                    // NDK property not available, don't set the option and let the CLI handle it
+                }
+
                 "application-id" `=` androidVariantMetadata.applicationId
                 "variant" `=` androidVariantMetadata.variantName
                 "version-name" `=` androidVariantMetadata.versionName

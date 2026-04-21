@@ -114,7 +114,6 @@ class GradlePlugin @Inject constructor(
         }
     }
 
-    @Suppress("TooGenericExceptionCaught")
     private fun configureUploadNativeSymbolsTask(
         variantConfiguration: VariantConfiguration,
         variant: AndroidVariant,
@@ -125,38 +124,11 @@ class GradlePlugin @Inject constructor(
 
         val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
 
-        if (variantConfiguration.ndkRoot != null) {
-            // User explicitly configured NDK root
-            task.ndkRoot.set(variantConfiguration.ndkRoot)
-        } else {
-            // Try to get NDK directory from AGP, with graceful fallback to dummy directory
-            val ndkDirProvider = try {
-                val androidExtension = target.extensions.findByType(AndroidComponentsExtension::class.java)
-                if (androidExtension != null) {
-                    try {
-                        androidExtension.sdkComponents.ndkDirectory
-                    } catch (ex: RuntimeException) {
-                        // NDK directory provider threw - NDK is not available, use dummy
-                        System.err.println("Warning: NDK is not available in this configuration: ${ex.message}")
-                        null
-                    }
-                } else {
-                    null
-                }
-            } catch (ex: RuntimeException) {
-                // Could not get AndroidComponentsExtension
-                System.err.println("Warning: Could not resolve NDK directory from AGP configuration: ${ex.message}")
-                null
-            }
-
-            if (ndkDirProvider != null) {
-                task.ndkRoot.set(ndkDirProvider)
-            } else {
-                // Set a dummy directory when NDK is not available
-                // Use a concrete File object since buildDirectory provider may not be resolved at task execution time
-                task.ndkRoot.set(java.io.File(target.buildDir, "dummy-ndk"))
-            }
-        }
+        val ndkProvider = target.extensions
+            .getByType(AndroidComponentsExtension::class.java)
+            .sdkComponents
+            .ndkDirectory
+        task.ndkRoot.set(ndkProvider)
 
         task.projectRoot.set(projectRoot)
         task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
