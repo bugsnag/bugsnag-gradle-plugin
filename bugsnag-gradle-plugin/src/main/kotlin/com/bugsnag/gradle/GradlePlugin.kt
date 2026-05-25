@@ -52,45 +52,55 @@ class GradlePlugin @Inject constructor(
                 return@onAndroidVariant
             }
 
-            val uploadBundleTask = target.tasks.register(
-                variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "Bundle"),
-                UploadBundleTask::class.java,
-                configureUploadBundleTask(target, variantConfiguration, variant)
-            )
-
-            if (variantConfiguration.autoUploadBundle) {
-                target.wireFinalizer(uploadBundleTask, variant.bundleTaskName)
+            val uploadBundleTaskName = variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "Bundle")
+            if (target.tasks.findByName(uploadBundleTaskName) == null) {
+                val uploadBundleTask = target.tasks.register(
+                    uploadBundleTaskName,
+                    UploadBundleTask::class.java,
+                    configureUploadBundleTask(target, variantConfiguration, variant)
+                )
+                if (variantConfiguration.autoUploadBundle) {
+                    target.wireFinalizer(uploadBundleTask, variant.bundleTaskName)
+                }
             }
 
-            val createBuildTask = target.tasks.register(
-                variant.name.toTaskName(prefix = CREATE_BUILD_TASK_PREFIX, suffix = "Build"),
-                CreateBuildTask::class.java,
-                configureCreateBuildTask(target, variantConfiguration, variant)
-            )
-
-            if (variantConfiguration.autoCreateBuild) {
-                target.wireFinalizer(createBuildTask, variant.bundleTaskName)
+            val createBuildTaskName = variant.name.toTaskName(prefix = CREATE_BUILD_TASK_PREFIX, suffix = "Build")
+            if (target.tasks.findByName(createBuildTaskName) == null) {
+                val createBuildTask = target.tasks.register(
+                    createBuildTaskName,
+                    CreateBuildTask::class.java,
+                    configureCreateBuildTask(target, variantConfiguration, variant)
+                )
+                if (variantConfiguration.autoCreateBuild) {
+                    target.wireFinalizer(createBuildTask, variant.bundleTaskName)
+                }
             }
 
             if (variant.obfuscationMappingFile != null) {
-                target.tasks.register(
-                    variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "ProguardMapping"),
-                    UploadMappingTask::class.java
-                ) { task ->
-                    configureAndroidTask(task, variantConfiguration, variant)
-                    task.mappingFile.set(variant.obfuscationMappingFile)
-                    task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
-                    variant.dexClassesDir?.let { task.dexClassesDir.set(it) }
-                    variantConfiguration.buildUuid?.let { task.buildUuid.set(it) }
+                val proguardTaskName = variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "ProguardMapping")
+                if (target.tasks.findByName(proguardTaskName) == null) {
+                    target.tasks.register(
+                        proguardTaskName,
+                        UploadMappingTask::class.java
+                    ) { task ->
+                        configureAndroidTask(task, variantConfiguration, variant)
+                        task.mappingFile.set(variant.obfuscationMappingFile)
+                        task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
+                        variant.dexClassesDir?.let { task.dexClassesDir.set(it) }
+                        variantConfiguration.buildUuid?.let { task.buildUuid.set(it) }
+                    }
                 }
             }
 
             if (variant.nativeSymbols != null) {
-                target.tasks.register(
-                    variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "NativeSymbols"),
-                    UploadNativeSymbolsTask::class.java,
-                    configureUploadNativeSymbolsTask(variantConfiguration, variant, target)
-                )
+                val nativeSymbolsTaskName = variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "NativeSymbols")
+                if (target.tasks.findByName(nativeSymbolsTaskName) == null) {
+                    target.tasks.register(
+                        nativeSymbolsTaskName,
+                        UploadNativeSymbolsTask::class.java,
+                        configureUploadNativeSymbolsTask(variantConfiguration, variant, target)
+                    )
+                }
             }
         }
     }
