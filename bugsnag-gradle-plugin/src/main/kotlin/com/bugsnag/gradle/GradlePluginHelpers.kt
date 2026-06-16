@@ -14,6 +14,79 @@ import com.bugsnag.gradle.util.wireFinalizer
 import org.gradle.api.Project
 import org.gradle.process.ExecOperations
 import java.io.File
+private fun shouldSkipNativeSymbolsForVariant(
+    taskName: String,
+    variant: AndroidVariant,
+    taskLogger: org.gradle.api.logging.Logger
+): Boolean {
+    if (variant.manifestFile == null) {
+        taskLogger.warn(
+            "Skipping $taskName: no AndroidManifest.xml located for " +
+                "variant ${variant.name}")
+        return true
+    }
+    return false
+}
+
+// helper: configure task metadata
+private fun configureNativeSymbolsTaskMetadata(
+    task: UploadNativeSymbolsTask,
+    target: Project,
+    variantConfiguration: VariantConfiguration,
+    variant: AndroidVariant
+) {
+    val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
+    task.projectRoot.set(projectRoot)
+
+    task.symbolFiles.from(variant.nativeSymbols)
+
+    task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
+    task.androidVariantMetadata.variantName.set(variant.name)
+}
+
+private fun resolveNdkDir(target: Project): File? {
+        val androidExt = try {
+            target.extensions.findByType(BaseExtension::class.java)
+        } catch (e: NoClassDefFoundError) {
+            // AGP is not present — log the caught error so it isn't swallowed and
+            // can be inspected in CI logs.
+            target.logger.debug(
+                "Android Gradle Plugin not present; cannot resolve ndkDirectory from BaseExtension",
+                e
+            )
+        // AGP is not present — log the caught error so it isn't swallowed and can be inspected in CI logs.
+        // We can't reference a task logger here; callers should log if desired.
+        // Preserve the original exception by returning null but keeping it visible in logs when callers log it.
+        null
+    }
+    return androidExt?.ndkDirectory?.takeIf { it.exists() }
+        ?: System.getenv("ANDROID_NDK_ROOT")?.let { File(it) }?.takeIf { it.exists() }
+}
+
+private fun configureTaskNdkRoot(
+    task: UploadNativeSymbolsTask,
+    target: Project,
+    variantConfiguration: VariantConfiguration
+) {
+    // prefer explicit configuration from variant
+    val ndkRootFromConfig = variantConfiguration.ndkRoot
+    if (ndkRootFromConfig != null) {
+        task.ndkRoot.set(ndkRootFromConfig)
+        return
+    }
+
+        // otherwise resolve from Android extension or env var
+        val ndkDir = resolveNdkDir(target)
+        if (ndkDir != null) {
+            task.ndkRoot.set(ndkDir)
+            return
+        }
+    throw BugsnagCliException(
+        "[FATAL] environment variable 'ANDROID_NDK_ROOT' not defined and no NDK directory " +
+                "found via Android extension. Set ANDROID_NDK_ROOT or configure ndkRoot in the " +
+                "bugsnag extension/variant configuration."
+    )
+}
 
 private fun configureBugsnagCliTask(
     task: BugsnagCliTask,
@@ -110,72 +183,36 @@ internal fun registerNativeSymbolsTask(
     variant: AndroidVariant,
     execOperations: ExecOperations
 ) {
-    if (variant.nativeSymbols != null) {
-        val nativeSymbolsTaskName = variant.name.toTaskName(
-            prefix = UPLOAD_TASK_PREFIX,
-            suffix = "NativeSymbols"
-        )
-        if (target.tasks.findByName(nativeSymbolsTaskName) == null) {
-            target.tasks.register(
-                nativeSymbolsTaskName,
-                UploadNativeSymbolsTask::class.java
-            ) { task ->
-                configureBugsnagCliTask(task, variantConfiguration, execOperations)
+    if (variant.nativeSymbols == null) return
 
-                // require manifest to be available for this variant — skip registration if missing
-                if (variant.manifestFile == null) {
-                    task.logger.warn(
-                        "Skipping $nativeSymbolsTaskName: no AndroidManifest.xml located for variant ${variant.name}"
-                    )
-                    return@register
-                }
+    val nativeSymbolsTaskName = variant.name.toTaskName(
+        prefix = UPLOAD_TASK_PREFIX,
+        suffix = "NativeSymbols"
+    )
+    if (target.tasks.findByName(nativeSymbolsTaskName) != null) return
 
-                task.symbolFiles.from(variant.nativeSymbols)
-                val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
-                task.projectRoot.set(projectRoot)
+    target.tasks.register(
+        nativeSymbolsTaskName,
+        UploadNativeSymbolsTask::class.java
+    ) { task ->
+        configureBugsnagCliTask(task, variantConfiguration, execOperations)
 
-                // resolve ndkRoot in order:
-                // 1) explicit value in variantConfiguration.ndkRoot
-                // 2) Android extension ndkDirectory (if AGP is present)
-                // 3) ANDROID_NDK_ROOT environment variable
-                val ndkRootFromConfig = variantConfiguration.ndkRoot
-                if (ndkRootFromConfig != null) {
-                    task.ndkRoot.set(ndkRootFromConfig)
-                } else {
-                    val androidExt = try {
-                        target.extensions.findByType(BaseExtension::class.java)
-                    } catch (e: NoClassDefFoundError) {
-                        // AGP not present in this project; log at debug level so the cause is preserved for troubleshooting.
-                        task.logger.debug("Android Gradle Plugin not available; cannot resolve ndkDirectory from BaseExtension", e)
-                        null
-                    }
-                    val ndkDir: File? = androidExt?.ndkDirectory
-                        ?.takeIf { it.exists() }
-                        ?: System.getenv("ANDROID_NDK_ROOT")
-                            ?.let { File(it) }
-                            ?.takeIf { it.exists() }
-
-                    if (ndkDir != null) {
-                        task.ndkRoot.set(ndkDir)
-                    } else {
-                        throw BugsnagCliException(
-                            "[FATAL] environment variable 'ANDROID_NDK_ROOT' not defined and no NDK directory found via Android extension. " +
-                                    "Set ANDROID_NDK_ROOT or configure ndkRoot in the bugsnag extension/variant configuration."
-                        )
-                    }
-                }
-
-                task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
-                task.androidVariantMetadata.variantName.set(variant.name)
-
-                task.dependsOn(
-                    variant.name.toTaskName(
-                        prefix = "extract",
-                        suffix = "NativeSymbolTables"
-                    )
-                )
-            }
+        if (shouldSkipNativeSymbolsForVariant(nativeSymbolsTaskName, variant, task.logger)) {
+            return@register
         }
+
+        // configure basic metadata and files
+        configureNativeSymbolsTaskMetadata(task, target, variantConfiguration, variant)
+
+        // configure ndk root (throws clear error if not resolvable)
+        configureTaskNdkRoot(task, target, variantConfiguration)
+
+        task.dependsOn(
+            variant.name.toTaskName(
+                prefix = "extract",
+                suffix = "NativeSymbolTables"
+            )
+        )
     }
 }
 
