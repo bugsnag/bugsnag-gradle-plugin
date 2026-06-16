@@ -9,33 +9,37 @@ import com.bugsnag.gradle.dsl.VariantConfiguration
 import com.bugsnag.gradle.dsl.debug
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.process.ExecOperations
 import javax.inject.Inject
 
 internal const val CLEAN_TASK = "Clean"
 
-class GradlePlugin @Inject constructor() : Plugin<Project> {
+class GradlePlugin @Inject constructor(
+    private val execOperations: ExecOperations
+) : Plugin<Project> {
     override fun apply(target: Project) {
         val bugsnag = target.extensions.create("bugsnag", BugsnagExtension::class.java)
         // turn-off the 'debug' variant by default
         bugsnag.variants.debug.enabled = false
-        configurePlugin(bugsnag, target)
+        configurePlugin(bugsnag, target, execOperations)
     }
 
-    private fun configurePlugin(bugsnag: BugsnagExtension, target: Project) {
+    private fun configurePlugin(bugsnag: BugsnagExtension, target: Project, execOperations: ExecOperations) {
         target.afterEvaluate {
             if (bugsnag.enabled && bugsnag.enableLegacyNativeExtraction) {
                 registerNdkLibInstallTask(target)
             }
         }
         target.onAndroidVariant { variant: AndroidVariant ->
-            handleVariant(target, bugsnag, variant)
+            handleVariant(target, bugsnag, variant, execOperations)
         }
     }
 
     private fun handleVariant(
         target: Project,
         bugsnag: BugsnagExtension,
-        variant: AndroidVariant
+        variant: AndroidVariant,
+        execOperations: ExecOperations
     ) {
         val variantConfiguration = VariantConfiguration(
             bugsnag,
@@ -44,9 +48,9 @@ class GradlePlugin @Inject constructor() : Plugin<Project> {
         if (!variantConfiguration.enabled) {
             return
         }
-        registerBundleAndBuildTasks(target, variantConfiguration, variant)
-        registerProguardMappingTask(target, variantConfiguration, variant)
-        registerNativeSymbolsTask(target, variantConfiguration, variant)
+        registerBundleAndBuildTasks(target, variantConfiguration, variant, execOperations)
+        registerProguardMappingTask(target, variantConfiguration, variant, execOperations)
+        registerNativeSymbolsTask(target, variantConfiguration, variant, execOperations)
     }
 
     private fun registerNdkLibInstallTask(project: Project) {
