@@ -6,15 +6,14 @@ import com.bugsnag.gradle.android.UploadBundleTask
 import com.bugsnag.gradle.android.UploadMappingTask
 import com.bugsnag.gradle.android.UploadNativeSymbolsTask
 import com.bugsnag.gradle.android.configureFrom
-import com.bugsnag.gradle.configureFrom
+import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.bugsnag.gradle.android.ExtractBugsnagJniLibsTask
-import com.bugsnag.gradle.android.onAndroidVariant
-import com.bugsnag.gradle.dsl.BugsnagExtension
 import com.bugsnag.gradle.dsl.VariantConfiguration
 import com.bugsnag.gradle.util.wireFinalizer
 import org.gradle.api.Project
 import org.gradle.process.ExecOperations
+import java.io.File
 
 private fun configureBugsnagCliTask(
     task: BugsnagCliTask,
@@ -122,15 +121,48 @@ internal fun registerNativeSymbolsTask(
                 UploadNativeSymbolsTask::class.java
             ) { task ->
                 configureBugsnagCliTask(task, variantConfiguration, execOperations)
+
+                // require manifest to be available for this variant — skip registration if missing
+                if (variant.manifestFile == null) {
+                    task.logger.warn(
+                        "Skipping $nativeSymbolsTaskName: no AndroidManifest.xml located for variant ${variant.name}"
+                    )
+                    return@register
+                }
+
                 task.symbolFiles.from(variant.nativeSymbols)
                 val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
-                val ndkRoot = variantConfiguration.ndkRoot
                 task.projectRoot.set(projectRoot)
-                if (ndkRoot != null) {
-                    task.ndkRoot.set(ndkRoot)
+
+                // resolve ndkRoot in order:
+                // 1) explicit value in variantConfiguration.ndkRoot
+                // 2) Android extension ndkDirectory (if AGP is present)
+                // 3) ANDROID_NDK_ROOT environment variable
+                val ndkRootFromConfig = variantConfiguration.ndkRoot
+                if (ndkRootFromConfig != null) {
+                    task.ndkRoot.set(ndkRootFromConfig)
+                } else {
+                    val androidExt = try {
+                        target.extensions.findByType(BaseExtension::class.java)
+                    } catch (e: NoClassDefFoundError) {
+                        null
+                    }
+                    val ndkDir: File? = androidExt?.ndkDirectory?.takeIf { it.exists() }
+                        ?: System.getenv("ANDROID_NDK_ROOT")?.let { File(it) }?.takeIf { it.exists() }
+
+                    if (ndkDir != null) {
+                        task.ndkRoot.set(ndkDir)
+                    } else {
+                        throw BugsnagCliException(
+                            "[FATAL] environment variable 'ANDROID_NDK_ROOT' not defined and no NDK directory found via Android extension. " +
+                                    "Set ANDROID_NDK_ROOT or configure ndkRoot in the bugsnag extension/variant configuration."
+                        )
+                    }
                 }
+
                 task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
                 task.androidVariantMetadata.variantName.set(variant.name)
+
                 task.dependsOn(
                     variant.name.toTaskName(
                         prefix = "extract",
