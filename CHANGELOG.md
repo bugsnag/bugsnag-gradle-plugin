@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Bug Fixes
+
+- Fix: Prevent duplicate task registration when using the `splits` block in Android Gradle projects. The plugin now checks for existing tasks before registering, avoiding exceptions like "Cannot add task 'bugsnagUploadAlphaDebugBundle' as a task with that name already exists." ([#issue], 2026-05-25)
+
 ## 1.1.0 (2026-03-17)
 
 ### Dependencies
