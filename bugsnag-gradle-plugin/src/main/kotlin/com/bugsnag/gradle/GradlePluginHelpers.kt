@@ -145,10 +145,15 @@ internal fun registerNativeSymbolsTask(
                     val androidExt = try {
                         target.extensions.findByType(BaseExtension::class.java)
                     } catch (e: NoClassDefFoundError) {
+                        // AGP not present in this project; log at debug level so the cause is preserved for troubleshooting.
+                        task.logger.debug("Android Gradle Plugin not available; cannot resolve ndkDirectory from BaseExtension", e)
                         null
                     }
-                    val ndkDir: File? = androidExt?.ndkDirectory?.takeIf { it.exists() }
-                        ?: System.getenv("ANDROID_NDK_ROOT")?.let { File(it) }?.takeIf { it.exists() }
+                    val ndkDir: File? = androidExt?.ndkDirectory
+                        ?.takeIf { it.exists() }
+                        ?: System.getenv("ANDROID_NDK_ROOT")
+                            ?.let { File(it) }
+                            ?.takeIf { it.exists() }
 
                     if (ndkDir != null) {
                         task.ndkRoot.set(ndkDir)
