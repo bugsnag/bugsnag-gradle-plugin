@@ -66,22 +66,4 @@ class GradlePlugin @Inject constructor() : Plugin<Project> {
             buildTasks.forEach { it.dependsOn(ndkSetupTask) }
         }
     }
-    }
-
-    fun registerNdkLibInstallTask(project: Project) {
-        val ndkTasks = project.tasks.withType(ExternalNativeBuildTask::class.java)
-        val cleanTasks = ndkTasks.filter { it.name.contains(CLEAN_TASK) }.toSet()
-        val buildTasks = ndkTasks.filter { !it.name.contains(CLEAN_TASK) }.toSet()
-        if (buildTasks.isNotEmpty()) {
-            val ndkSetupTask = project.tasks.register(
-                "bugsnagInstallJniLibsTask",
-                ExtractBugsnagJniLibsTask::class.java
-            ) { task ->
-                task.group = TASK_GROUP
-                task.bugsnagArtifacts.from(ExtractBugsnagJniLibsTask.resolveBugsnagArtifacts(project))
-            }
-            ndkSetupTask.configure { it.mustRunAfter(cleanTasks) }
-            buildTasks.forEach { it.dependsOn(ndkSetupTask) }
-        }
-    }
-
+}

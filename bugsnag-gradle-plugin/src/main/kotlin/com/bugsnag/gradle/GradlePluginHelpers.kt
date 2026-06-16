@@ -18,9 +18,10 @@ internal fun registerBundleAndBuildTasks(
     if (target.tasks.findByName(uploadBundleTaskName) == null) {
         val uploadBundleTask = target.tasks.register(
             uploadBundleTaskName,
-            UploadBundleTask::class.java,
-            configureUploadBundleTask(target, variantConfiguration, variant)
-        )
+            UploadBundleTask::class.java
+        ) { task ->
+            configureUploadBundleTask(target, variantConfiguration, variant)(task)
+        }
         if (variantConfiguration.autoUploadBundle) {
             target.wireFinalizer(uploadBundleTask, variant.bundleTaskName)
         }
@@ -29,9 +30,10 @@ internal fun registerBundleAndBuildTasks(
     if (target.tasks.findByName(createBuildTaskName) == null) {
         val createBuildTask = target.tasks.register(
             createBuildTaskName,
-            CreateBuildTask::class.java,
-            configureCreateBuildTask(target, variantConfiguration, variant)
-        )
+            CreateBuildTask::class.java
+        ) { task ->
+            configureCreateBuildTask(target, variantConfiguration, variant)(task)
+        }
         if (variantConfiguration.autoCreateBuild) {
             target.wireFinalizer(createBuildTask, variant.bundleTaskName)
         }
@@ -75,9 +77,10 @@ internal fun registerNativeSymbolsTask(
         if (target.tasks.findByName(nativeSymbolsTaskName) == null) {
             target.tasks.register(
                 nativeSymbolsTaskName,
-                UploadNativeSymbolsTask::class.java,
-                configureUploadNativeSymbolsTask(variantConfiguration, variant, target)
-            )
+                UploadNativeSymbolsTask::class.java
+            ) { task ->
+                configureUploadNativeSymbolsTask(variantConfiguration, variant, target)(task)
+            }
         }
     }
 }
