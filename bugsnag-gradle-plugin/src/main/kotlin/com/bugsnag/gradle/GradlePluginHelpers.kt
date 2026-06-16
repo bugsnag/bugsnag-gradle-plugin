@@ -5,35 +5,9 @@ import com.bugsnag.gradle.android.CreateBuildTask
 import com.bugsnag.gradle.android.UploadBundleTask
 import com.bugsnag.gradle.android.UploadMappingTask
 import com.bugsnag.gradle.android.UploadNativeSymbolsTask
-import com.android.build.gradle.tasks.ExternalNativeBuildTask
-import com.bugsnag.gradle.android.ExtractBugsnagJniLibsTask
-import org.gradle.api.Plugin
-import javax.inject.Inject
-import com.bugsnag.gradle.android.onAndroidVariant
-import com.bugsnag.gradle.dsl.BugsnagExtension
 import com.bugsnag.gradle.dsl.VariantConfiguration
 import com.bugsnag.gradle.util.wireFinalizer
 import org.gradle.api.Project
-
-private fun configurePlugin(bugsnag: BugsnagExtension, target: Project) {
-    target.afterEvaluate {
-        if (bugsnag.enabled && bugsnag.enableLegacyNativeExtraction) {
-            registerNdkLibInstallTask(target)
-        }
-    }
-    target.onAndroidVariant { variant: AndroidVariant ->
-        val variantConfiguration = VariantConfiguration(
-            bugsnag,
-            bugsnag.variants.findByName(variant.name)
-        )
-        if (!variantConfiguration.enabled) {
-            return@onAndroidVariant
-        }
-        registerBundleAndBuildTasks(target, variantConfiguration, variant)
-        registerProguardMappingTask(target, variantConfiguration, variant)
-        registerNativeSymbolsTask(target, variantConfiguration, variant)
-    }
-}
 
 internal fun registerBundleAndBuildTasks(
     target: Project,
