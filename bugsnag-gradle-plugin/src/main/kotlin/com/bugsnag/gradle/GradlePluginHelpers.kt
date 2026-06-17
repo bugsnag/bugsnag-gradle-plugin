@@ -203,6 +203,15 @@ internal fun registerNativeSymbolsTask(
         }
 
         // configure basic metadata and files
+        // inside the task registration lambda or @TaskAction before execUpload
+        val apiKeyPresent = task.globalOptions.apiKey.isPresent ||
+            variantConfiguration.apiKey != null // whichever field stores apiKey in your DSL
+
+        if (!apiKeyPresent) {
+            task.logger.warn("Skipping native symbol upload for variant ${variant.name}: missing Bugsnag API key")
+            return@register // or return from the TaskAction
+        }
+
         configureNativeSymbolsTaskMetadata(task, target, variantConfiguration, variant)
 
         // configure ndk root (throws clear error if not resolvable)
