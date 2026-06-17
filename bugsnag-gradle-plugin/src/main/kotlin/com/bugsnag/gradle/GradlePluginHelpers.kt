@@ -14,50 +14,17 @@ import com.bugsnag.gradle.util.wireFinalizer
 import org.gradle.api.Project
 import org.gradle.process.ExecOperations
 import java.io.File
-private fun shouldSkipNativeSymbolsForVariant(
-    taskName: String,
-    variant: AndroidVariant,
-    taskLogger: org.gradle.api.logging.Logger
-): Boolean {
-    if (variant.manifestFile == null) {
-        taskLogger.warn(
-            "Skipping $taskName: no AndroidManifest.xml located for " +
-                "variant ${variant.name}"
-        )
-        return true
-    }
-    return false
-}
-
-// helper: configure task metadata
-private fun configureNativeSymbolsTaskMetadata(
-    task: UploadNativeSymbolsTask,
-    target: Project,
-    variantConfiguration: VariantConfiguration,
-    variant: AndroidVariant
-) {
-    val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
-    task.projectRoot.set(projectRoot)
-
-    task.symbolFiles.from(variant.nativeSymbols)
-
-    task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
-    task.androidVariantMetadata.variantName.set(variant.name)
-}
 
 private fun resolveNdkDir(target: Project): File? {
     val androidExt = try {
         target.extensions.findByType(BaseExtension::class.java)
     } catch (e: NoClassDefFoundError) {
-        // AGP is not present — log the caught error so it isn't swallowed and
+        // AGP is not present — log the caught error, so it isn't swallowed and
         // can be inspected in CI logs.
         target.logger.debug(
             "Android Gradle Plugin not present; cannot resolve ndkDirectory from BaseExtension",
             e
         )
-        // AGP is not present — log the caught error so it isn't swallowed and can be inspected in CI logs.
-        // We can't reference a task logger here; callers should log if desired.
-        // Preserve the original exception by returning null but keeping it visible in logs when callers log it.
         null
     }
     return androidExt?.ndkDirectory?.takeIf { it.exists() }
@@ -192,27 +159,34 @@ internal fun registerNativeSymbolsTask(
     )
     if (target.tasks.findByName(nativeSymbolsTaskName) != null) return
 
+    // resolve values now so we can always set required properties at registration time
+    val resolvedProjectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
+    val resolvedVariantName = variant.name
+
     target.tasks.register(
         nativeSymbolsTaskName,
         UploadNativeSymbolsTask::class.java
     ) { task ->
         configureBugsnagCliTask(task, variantConfiguration, execOperations)
 
-        if (shouldSkipNativeSymbolsForVariant(nativeSymbolsTaskName, variant, task.logger)) {
+        // ALWAYS set required non-optional properties so Gradle validation passes
+        task.projectRoot.set(resolvedProjectRoot)
+        task.androidVariantMetadata.variantName.set(resolvedVariantName)
+
+        // if manifest missing we skip configuring files/ndk/upload but the task remains valid
+        if (variant.manifestFile == null) {
+            task.logger.warn(
+                "Skipping native symbols upload for variant ${variant.name}: no AndroidManifest.xml located"
+            )
+            task.logger.warn(
+                "Skipping native symbols upload for variant ${variant.name}: no AndroidManifest.xml located"
+            )
             return@register
         }
 
-        // configure basic metadata and files
-        // inside the task registration lambda or @TaskAction before execUpload
-        val apiKeyPresent = task.globalOptions.apiKey.isPresent ||
-            variantConfiguration.apiKey != null // whichever field stores apiKey in your DSL
-
-        if (!apiKeyPresent) {
-            task.logger.warn("Skipping native symbol upload for variant ${variant.name}: missing Bugsnag API key")
-            return@register // or return from the TaskAction
-        }
-
-        configureNativeSymbolsTaskMetadata(task, target, variantConfiguration, variant)
+        // configure files & metadata
+        task.symbolFiles.from(variant.nativeSymbols)
+        task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
 
         // configure ndk root (throws clear error if not resolvable)
         configureTaskNdkRoot(task, target, variantConfiguration)
