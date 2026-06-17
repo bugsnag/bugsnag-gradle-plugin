@@ -22,6 +22,7 @@ import com.bugsnag.gradle.util.wireFinalizer
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.provider.Provider
 import org.gradle.process.ExecOperations
 import javax.inject.Inject
 
@@ -55,152 +56,203 @@ class GradlePlugin @Inject constructor(
                 return@onAndroidVariant
             }
 
-            val generateBuildIdTask = target.tasks.register(
-                variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "BuildId"),
-                GenerateBuildIdTask::class.java
-            ) { task ->
-                task.group = TASK_GROUP
-                task.buildUuid.set(variantConfiguration.buildUuid)
-                task.outputFile.set(target.layout.buildDirectory.file("intermediates/bugsnag/build-id-${variant.name}.txt"))
-            }
-
-            val buildUuidProvider = generateBuildIdTask.flatMap { it.outputFile }.map { it.asFile.readText().trim() }
-
-            val generateResourcesTask = target.tasks.register(
-                variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "Resources"),
-                GenerateResourcesTask::class.java
-            ) { task ->
-                task.group = TASK_GROUP
-                task.buildUuidFile.set(generateBuildIdTask.flatMap { it.outputFile })
-                task.outputDirectory.set(target.layout.buildDirectory.dir("generated/res/bugsnag/${variant.name}"))
-            }
-
-            val variantResources = variant.variant
-            if (variantResources is HasAndroidResources) {
-                variantResources.sources.res?.addGeneratedSourceDirectory(
-                    generateResourcesTask,
-                    GenerateResourcesTask::outputDirectory
-                )
-            }
-
-            val uploadBundleTask = target.tasks.register(
-                variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "Bundle"),
-                UploadBundleTask::class.java,
-                configureUploadBundleTask(target, variantConfiguration, variant)
-            )
-
-            if (variantConfiguration.autoUploadBundle) {
-                target.wireFinalizer(uploadBundleTask, variant.bundleTaskName)
-            }
-
-            val createBuildTask = target.tasks.register(
-                variant.name.toTaskName(prefix = CREATE_BUILD_TASK_PREFIX, suffix = "Build"),
-                CreateBuildTask::class.java,
-                configureCreateBuildTask(target, variantConfiguration, variant)
-            )
-            createBuildTask.configure { it.buildUuid.set(buildUuidProvider) }
-
-            if (variantConfiguration.autoCreateBuild) {
-                target.wireFinalizer(createBuildTask, variant.bundleTaskName)
-            }
-
-            if (variant.obfuscationMappingFile != null) {
-                target.tasks.register(
-                    variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "ProguardMapping"),
-                    UploadMappingTask::class.java
-                ) { task ->
-                    configureAndroidTask(task, variantConfiguration, variant)
-                    task.mappingFile.set(variant.obfuscationMappingFile)
-                    task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
-                    variant.dexClassesDir?.let { task.dexClassesDir.set(it) }
-                    task.buildUuid.set(buildUuidProvider)
-                }
-            }
-
-            if (variant.nativeSymbols != null) {
-                target.tasks.register(
-                    variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "NativeSymbols"),
-                    UploadNativeSymbolsTask::class.java,
-                    configureUploadNativeSymbolsTask(variantConfiguration, variant, target)
-                )
-            }
+            registerBugsnagTasks(target, variant, variantConfiguration, execOperations)
         }
     }
+}
 
-    private fun registerNdkLibInstallTask(project: Project) {
-        val ndkTasks = project.tasks.withType(ExternalNativeBuildTask::class.java)
-        val cleanTasks = ndkTasks.filter { it.name.contains(CLEAN_TASK) }.toSet()
-        val buildTasks = ndkTasks.filter { !it.name.contains(CLEAN_TASK) }.toSet()
+private fun registerBugsnagTasks(
+    target: Project,
+    variant: AndroidVariant,
+    variantConfiguration: VariantConfiguration,
+    execOperations: ExecOperations
+) {
+    val buildUuidProvider = registerBuildIdGenerationTask(target, variant, variantConfiguration)
 
-        if (buildTasks.isNotEmpty()) {
-            val ndkSetupTask = project.tasks.register(
-                "bugsnagInstallJniLibsTask",
-                ExtractBugsnagJniLibsTask::class.java
-            ) { task ->
-                task.group = TASK_GROUP
-                task.bugsnagArtifacts.from(ExtractBugsnagJniLibsTask.resolveBugsnagArtifacts(project))
-            }
+    val uploadBundleTask = target.tasks.register(
+        variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "Bundle"),
+        UploadBundleTask::class.java,
+        configureUploadBundleTask(target, variantConfiguration, variant, execOperations)
+    )
 
-            ndkSetupTask.configure { it.mustRunAfter(cleanTasks) }
-            buildTasks.forEach { it.dependsOn(ndkSetupTask) }
-        }
+    if (variantConfiguration.autoUploadBundle) {
+        target.wireFinalizer(uploadBundleTask, variant.bundleTaskName)
     }
 
-    private fun configureUploadNativeSymbolsTask(
-        variantConfiguration: VariantConfiguration,
-        variant: AndroidVariant,
-        target: Project
-    ) = Action<UploadNativeSymbolsTask> { task ->
-        configureAndroidTask(task, variantConfiguration, variant)
-        task.symbolFiles.from(variant.nativeSymbols)
+    val createBuildTask = target.tasks.register(
+        variant.name.toTaskName(prefix = CREATE_BUILD_TASK_PREFIX, suffix = "Build"),
+        CreateBuildTask::class.java,
+        configureCreateBuildTask(target, variantConfiguration, variant, execOperations)
+    )
+    createBuildTask.configure { it.buildUuid.set(buildUuidProvider) }
 
-        val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
-        val ndkRoot =
-            variantConfiguration.ndkRoot ?: target.extensions.getByType(BaseExtension::class.java).ndkDirectory
-        task.projectRoot.set(projectRoot)
-        task.ndkRoot.set(ndkRoot)
-        task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
-
-        task.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
+    if (variantConfiguration.autoCreateBuild) {
+        target.wireFinalizer(createBuildTask, variant.bundleTaskName)
     }
 
-    private fun configureCreateBuildTask(target: Project, bugsnag: VariantConfiguration, variant: AndroidVariant) =
-        Action<CreateBuildTask> { task ->
-            task.group = TASK_GROUP
-            task.globalOptions.configureFrom(bugsnag, execOperations)
-            task.systemMetadata.configureFrom(target, bugsnag)
-            task.metadata.set(bugsnag.metadata)
-            task.variantMetadata.configureFrom(bugsnag, variant)
-            task.androidManifestFile.set(variant.manifestFile)
-            task.projectPath.set(task.project.projectDir.toString())
-        }
-
-    private fun configureUploadBundleTask(target: Project, bugsnag: VariantConfiguration, variant: AndroidVariant) =
-        Action<UploadBundleTask> { task ->
-            configureBugsnagCliTask(task, bugsnag)
-            task.bundleFile.set(variant.bundleFile)
-
-            val projectRoot = bugsnag.projectRoot ?: target.rootDir.toString()
-            task.projectRoot.set(projectRoot)
-
-            // make sure that the bundle is actually built first
-            task.dependsOn(variant.bundleTaskName)
-        }
-
-    private fun configureAndroidTask(task: BugsnagCliTask, bugsnag: VariantConfiguration, variant: AndroidVariant) {
-        configureBugsnagCliTask(task, bugsnag)
-
-        if (task is HasAndroidOptions) {
-            task.androidOptions.from(variant)
-        }
+    if (variant.obfuscationMappingFile != null) {
+        registerProguardUploadTask(target, variant, variantConfiguration, buildUuidProvider, execOperations)
     }
 
-    private fun configureBugsnagCliTask(task: BugsnagCliTask, bugsnag: VariantConfiguration) {
+    if (variant.nativeSymbols != null) {
+        target.tasks.register(
+            variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "NativeSymbols"),
+            UploadNativeSymbolsTask::class.java,
+            configureUploadNativeSymbolsTask(variantConfiguration, variant, target, execOperations)
+        )
+    }
+}
+
+private fun registerBuildIdGenerationTask(
+    target: Project,
+    variant: AndroidVariant,
+    variantConfiguration: VariantConfiguration
+): Provider<String> {
+    val generateBuildIdTask = target.tasks.register(
+        variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "BuildId"),
+        GenerateBuildIdTask::class.java
+    ) { task ->
         task.group = TASK_GROUP
-        task.globalOptions.configureFrom(bugsnag, execOperations)
+        task.buildUuid.set(variantConfiguration.buildUuid)
+        val buildIdFile = target.layout.buildDirectory.file(
+            "intermediates/bugsnag/build-id-${variant.name}.txt"
+        )
+        task.outputFile.set(buildIdFile)
+    }
 
-        if (task is AbstractUploadTask) {
-            task.uploadOptions.configureFrom(bugsnag)
+    val buildUuidProvider = generateBuildIdTask.flatMap { it.outputFile }
+        .map { it.asFile.readText().trim() }
+
+    val generateResourcesTask = target.tasks.register(
+        variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "Resources"),
+        GenerateResourcesTask::class.java
+    ) { task ->
+        task.group = TASK_GROUP
+        task.buildUuidFile.set(generateBuildIdTask.flatMap { it.outputFile })
+        val resDir = target.layout.buildDirectory.dir("generated/res/bugsnag/${variant.name}")
+        task.outputDirectory.set(resDir)
+    }
+
+    val variantResources = variant.variant
+    if (variantResources is HasAndroidResources) {
+        variantResources.sources.res?.addGeneratedSourceDirectory(
+            generateResourcesTask,
+            GenerateResourcesTask::outputDirectory
+        )
+    }
+    return buildUuidProvider
+}
+
+private fun registerProguardUploadTask(
+    target: Project,
+    variant: AndroidVariant,
+    variantConfiguration: VariantConfiguration,
+    buildUuidProvider: Provider<String>,
+    execOperations: ExecOperations
+) {
+    target.tasks.register(
+        variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "ProguardMapping"),
+        UploadMappingTask::class.java
+    ) { task ->
+        configureAndroidTask(task, variantConfiguration, variant, execOperations)
+        task.mappingFile.set(variant.obfuscationMappingFile)
+        task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
+        variant.dexClassesDir?.let { task.dexClassesDir.set(it) }
+        task.buildUuid.set(buildUuidProvider)
+    }
+}
+
+private fun registerNdkLibInstallTask(project: Project) {
+    val ndkTasks = project.tasks.withType(ExternalNativeBuildTask::class.java)
+    val cleanTasks = ndkTasks.filter { it.name.contains(CLEAN_TASK) }.toSet()
+    val buildTasks = ndkTasks.filter { !it.name.contains(CLEAN_TASK) }.toSet()
+
+    if (buildTasks.isNotEmpty()) {
+        val ndkSetupTask = project.tasks.register(
+            "bugsnagInstallJniLibsTask",
+            ExtractBugsnagJniLibsTask::class.java
+        ) { task ->
+            task.group = TASK_GROUP
+            task.bugsnagArtifacts.from(ExtractBugsnagJniLibsTask.resolveBugsnagArtifacts(project))
         }
+
+        ndkSetupTask.configure { it.mustRunAfter(cleanTasks) }
+        buildTasks.forEach { it.dependsOn(ndkSetupTask) }
+    }
+}
+
+private fun configureUploadNativeSymbolsTask(
+    variantConfiguration: VariantConfiguration,
+    variant: AndroidVariant,
+    target: Project,
+    execOperations: ExecOperations
+) = Action<UploadNativeSymbolsTask> { task ->
+    configureAndroidTask(task, variantConfiguration, variant, execOperations)
+    task.symbolFiles.from(variant.nativeSymbols)
+
+    val projectRoot = variantConfiguration.projectRoot ?: target.rootDir.toString()
+    val ndkRoot =
+        variantConfiguration.ndkRoot ?: target.extensions.getByType(BaseExtension::class.java).ndkDirectory
+    task.projectRoot.set(projectRoot)
+    task.ndkRoot.set(ndkRoot)
+    task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
+
+    task.dependsOn(variant.name.toTaskName(prefix = "extract", suffix = "NativeSymbolTables"))
+}
+
+private fun configureCreateBuildTask(
+    target: Project,
+    bugsnag: VariantConfiguration,
+    variant: AndroidVariant,
+    execOperations: ExecOperations
+) = Action<CreateBuildTask> { task ->
+    task.group = TASK_GROUP
+    task.globalOptions.configureFrom(bugsnag, execOperations)
+    task.systemMetadata.configureFrom(target, bugsnag)
+    task.metadata.set(bugsnag.metadata)
+    task.variantMetadata.configureFrom(bugsnag, variant)
+    task.androidManifestFile.set(variant.manifestFile)
+    task.projectPath.set(task.project.projectDir.toString())
+}
+
+private fun configureUploadBundleTask(
+    target: Project,
+    bugsnag: VariantConfiguration,
+    variant: AndroidVariant,
+    execOperations: ExecOperations
+) = Action<UploadBundleTask> { task ->
+    configureBugsnagCliTask(task, bugsnag, execOperations)
+    task.bundleFile.set(variant.bundleFile)
+
+    val projectRoot = bugsnag.projectRoot ?: target.rootDir.toString()
+    task.projectRoot.set(projectRoot)
+
+    // make sure that the bundle is actually built first
+    task.dependsOn(variant.bundleTaskName)
+}
+
+private fun configureAndroidTask(
+    task: BugsnagCliTask,
+    bugsnag: VariantConfiguration,
+    variant: AndroidVariant,
+    execOperations: ExecOperations
+) {
+    configureBugsnagCliTask(task, bugsnag, execOperations)
+
+    if (task is HasAndroidOptions) {
+        task.androidOptions.from(variant)
+    }
+}
+
+private fun configureBugsnagCliTask(
+    task: BugsnagCliTask,
+    bugsnag: VariantConfiguration,
+    execOperations: ExecOperations
+) {
+    task.group = TASK_GROUP
+    task.globalOptions.configureFrom(bugsnag, execOperations)
+
+    if (task is AbstractUploadTask) {
+        task.uploadOptions.configureFrom(bugsnag)
     }
 }

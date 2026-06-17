@@ -4,7 +4,6 @@ import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
 import com.android.build.api.variant.CanMinifyCode
-import com.android.build.api.variant.HasAndroidResources
 import com.android.build.api.variant.Variant
 import com.bugsnag.gradle.capitalise
 import com.bugsnag.gradle.toTaskName
