@@ -107,6 +107,7 @@ internal fun registerBundleAndBuildTasks(
             configureBugsnagCliTask(task, variantConfiguration, execOperations)
             task.metadata.set(variantConfiguration.metadata)
             task.variantMetadata.configureFrom(variantConfiguration, variant)
+            task.systemMetadata.configureFrom(target, variantConfiguration)
             task.androidManifestFile.set(variant.manifestFile)
             task.projectPath.set(task.project.projectDir.toString())
         }
