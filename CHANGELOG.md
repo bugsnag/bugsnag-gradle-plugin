@@ -2,6 +2,11 @@
 
 ## 1.1.0 (2026-03-17)
 
+### Bug Fixes
+
+- Fix Build UUID mismatch by re-introducing automatic Build UUID generation and resource injection.
+- Ensure all dex files are included when calculating fallback Build UUID in `bugsnag-cli`.
+
 ### Dependencies
 
 Update bugsnag-cli to [v3.9.0](https://github.com/bugsnag/bugsnag-cli/releases/tag/v3.9.0) [#62](git@github.com:bugsnag/bugsnag-gradle-plugin/pull/62)

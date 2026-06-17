@@ -1,10 +1,13 @@
 package com.bugsnag.gradle
 
+import com.android.build.api.variant.HasAndroidResources
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.bugsnag.gradle.android.AndroidVariant
 import com.bugsnag.gradle.android.CreateBuildTask
 import com.bugsnag.gradle.android.ExtractBugsnagJniLibsTask
+import com.bugsnag.gradle.android.GenerateBuildIdTask
+import com.bugsnag.gradle.android.GenerateResourcesTask
 import com.bugsnag.gradle.android.HasAndroidOptions
 import com.bugsnag.gradle.android.UploadBundleTask
 import com.bugsnag.gradle.android.UploadMappingTask
@@ -52,6 +55,34 @@ class GradlePlugin @Inject constructor(
                 return@onAndroidVariant
             }
 
+            val generateBuildIdTask = target.tasks.register(
+                variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "BuildId"),
+                GenerateBuildIdTask::class.java
+            ) { task ->
+                task.group = TASK_GROUP
+                task.buildUuid.set(variantConfiguration.buildUuid)
+                task.outputFile.set(target.layout.buildDirectory.file("intermediates/bugsnag/build-id-${variant.name}.txt"))
+            }
+
+            val buildUuidProvider = generateBuildIdTask.flatMap { it.outputFile }.map { it.asFile.readText().trim() }
+
+            val generateResourcesTask = target.tasks.register(
+                variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "Resources"),
+                GenerateResourcesTask::class.java
+            ) { task ->
+                task.group = TASK_GROUP
+                task.buildUuidFile.set(generateBuildIdTask.flatMap { it.outputFile })
+                task.outputDirectory.set(target.layout.buildDirectory.dir("generated/res/bugsnag/${variant.name}"))
+            }
+
+            val variantResources = variant.variant
+            if (variantResources is HasAndroidResources) {
+                variantResources.sources.res?.addGeneratedSourceDirectory(
+                    generateResourcesTask,
+                    GenerateResourcesTask::outputDirectory
+                )
+            }
+
             val uploadBundleTask = target.tasks.register(
                 variant.name.toTaskName(prefix = UPLOAD_TASK_PREFIX, suffix = "Bundle"),
                 UploadBundleTask::class.java,
@@ -67,6 +98,7 @@ class GradlePlugin @Inject constructor(
                 CreateBuildTask::class.java,
                 configureCreateBuildTask(target, variantConfiguration, variant)
             )
+            createBuildTask.configure { it.buildUuid.set(buildUuidProvider) }
 
             if (variantConfiguration.autoCreateBuild) {
                 target.wireFinalizer(createBuildTask, variant.bundleTaskName)
@@ -81,7 +113,7 @@ class GradlePlugin @Inject constructor(
                     task.mappingFile.set(variant.obfuscationMappingFile)
                     task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
                     variant.dexClassesDir?.let { task.dexClassesDir.set(it) }
-                    variantConfiguration.buildUuid?.let { task.buildUuid.set(it) }
+                    task.buildUuid.set(buildUuidProvider)
                 }
             }
 

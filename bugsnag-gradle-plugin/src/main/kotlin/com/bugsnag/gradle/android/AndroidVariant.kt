@@ -4,6 +4,7 @@ import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.api.variant.ApplicationVariant
 import com.android.build.api.variant.CanMinifyCode
+import com.android.build.api.variant.HasAndroidResources
 import com.android.build.api.variant.Variant
 import com.bugsnag.gradle.capitalise
 import com.bugsnag.gradle.toTaskName
@@ -26,7 +27,8 @@ internal data class AndroidVariant(
     val versionName: Provider<String?>?,
     val versionCode: Provider<Int?>?,
     val applicationId: Provider<String?>?,
-    val dexClassesDir: Provider<Directory>?
+    val dexClassesDir: Provider<Directory>?,
+    val variant: Variant
 ) {
     val bundleTaskName: String
         get() = name.toTaskName(prefix = "bundle")
@@ -66,7 +68,8 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                                 output.versionName,
                                 output.versionCode,
                                 variant.applicationId,
-                                getDexFiles(variant)
+                                getDexFiles(variant),
+                                variant
                             )
                         )
                     }
@@ -84,7 +87,8 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                         null,
                         null,
                         null,
-                        getDexFiles(variant)
+                        getDexFiles(variant),
+                        variant
                     )
                 )
             }

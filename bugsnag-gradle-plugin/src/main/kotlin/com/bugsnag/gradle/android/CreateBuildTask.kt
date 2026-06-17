@@ -29,6 +29,10 @@ internal abstract class CreateBuildTask : BugsnagCliTask() {
     @get:Input
     abstract val projectPath: Property<String>
 
+    @get:Input
+    @get:Optional
+    abstract val buildUuid: Property<String>
+
     @TaskAction
     fun createBuild() {
         val buildMetadata = systemMetadata.toMap() + metadata.orElse(emptyMap()).get()
@@ -43,6 +47,7 @@ internal abstract class CreateBuildTask : BugsnagCliTask() {
             "release-stage" `=` variantMetadata.variantName
             "version-name" `=` variantMetadata.versionName
             "version-code" `=` variantMetadata.versionCode.map { it.toString() }
+            "build-uuid" `=` buildUuid
 
             +projectPath.get().toString()
         }
