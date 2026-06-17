@@ -9,6 +9,7 @@ import com.bugsnag.gradle.android.UploadBundleTask
 import com.bugsnag.gradle.android.UploadMappingTask
 import com.bugsnag.gradle.android.UploadNativeSymbolsTask
 import com.bugsnag.gradle.android.configureFrom
+import com.bugsnag.gradle.android.from
 import com.bugsnag.gradle.dsl.VariantConfiguration
 import com.bugsnag.gradle.util.wireFinalizer
 import org.gradle.api.Project
@@ -134,6 +135,7 @@ internal fun registerProguardMappingTask(
                 configureBugsnagCliTask(task, variantConfiguration, execOperations)
                 task.mappingFile.set(variant.obfuscationMappingFile)
                 task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
+                task.androidOptions.from(variant)
                 variant.dexClassesDir?.let {
                     task.dexClassesDir.set(it)
                 }
@@ -187,6 +189,7 @@ internal fun registerNativeSymbolsTask(
         // configure files & metadata
         task.symbolFiles.from(variant.nativeSymbols)
         task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
+        task.androidOptions.from(variant)
 
         // configure ndk root (throws clear error if not resolvable)
         configureTaskNdkRoot(task, target, variantConfiguration)
