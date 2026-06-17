@@ -1,14 +1,14 @@
 package com.bugsnag.gradle
 
+import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.bugsnag.gradle.android.AndroidVariant
 import com.bugsnag.gradle.android.CreateBuildTask
+import com.bugsnag.gradle.android.ExtractBugsnagJniLibsTask
 import com.bugsnag.gradle.android.UploadBundleTask
 import com.bugsnag.gradle.android.UploadMappingTask
 import com.bugsnag.gradle.android.UploadNativeSymbolsTask
 import com.bugsnag.gradle.android.configureFrom
-import com.android.build.gradle.BaseExtension
-import com.android.build.gradle.tasks.ExternalNativeBuildTask
-import com.bugsnag.gradle.android.ExtractBugsnagJniLibsTask
 import com.bugsnag.gradle.dsl.VariantConfiguration
 import com.bugsnag.gradle.util.wireFinalizer
 import org.gradle.api.Project
@@ -22,7 +22,8 @@ private fun shouldSkipNativeSymbolsForVariant(
     if (variant.manifestFile == null) {
         taskLogger.warn(
             "Skipping $taskName: no AndroidManifest.xml located for " +
-                "variant ${variant.name}")
+                "variant ${variant.name}"
+        )
         return true
     }
     return false
@@ -45,15 +46,15 @@ private fun configureNativeSymbolsTaskMetadata(
 }
 
 private fun resolveNdkDir(target: Project): File? {
-        val androidExt = try {
-            target.extensions.findByType(BaseExtension::class.java)
-        } catch (e: NoClassDefFoundError) {
-            // AGP is not present — log the caught error so it isn't swallowed and
-            // can be inspected in CI logs.
-            target.logger.debug(
-                "Android Gradle Plugin not present; cannot resolve ndkDirectory from BaseExtension",
-                e
-            )
+    val androidExt = try {
+        target.extensions.findByType(BaseExtension::class.java)
+    } catch (e: NoClassDefFoundError) {
+        // AGP is not present — log the caught error so it isn't swallowed and
+        // can be inspected in CI logs.
+        target.logger.debug(
+            "Android Gradle Plugin not present; cannot resolve ndkDirectory from BaseExtension",
+            e
+        )
         // AGP is not present — log the caught error so it isn't swallowed and can be inspected in CI logs.
         // We can't reference a task logger here; callers should log if desired.
         // Preserve the original exception by returning null but keeping it visible in logs when callers log it.
@@ -75,16 +76,16 @@ private fun configureTaskNdkRoot(
         return
     }
 
-        // otherwise resolve from Android extension or env var
-        val ndkDir = resolveNdkDir(target)
-        if (ndkDir != null) {
-            task.ndkRoot.set(ndkDir)
-            return
-        }
+    // otherwise resolve from Android extension or env var
+    val ndkDir = resolveNdkDir(target)
+    if (ndkDir != null) {
+        task.ndkRoot.set(ndkDir)
+        return
+    }
     throw BugsnagCliException(
         "[FATAL] environment variable 'ANDROID_NDK_ROOT' not defined and no NDK directory " +
-                "found via Android extension. Set ANDROID_NDK_ROOT or configure ndkRoot in the " +
-                "bugsnag extension/variant configuration."
+            "found via Android extension. Set ANDROID_NDK_ROOT or configure ndkRoot in the " +
+            "bugsnag extension/variant configuration."
     )
 }
 
