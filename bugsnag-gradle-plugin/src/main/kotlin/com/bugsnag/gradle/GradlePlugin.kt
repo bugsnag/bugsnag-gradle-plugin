@@ -4,7 +4,6 @@ import com.android.build.api.variant.HasAndroidResources
 import com.android.build.gradle.BaseExtension
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.bugsnag.gradle.android.AndroidVariant
-import com.bugsnag.gradle.android.CreateBuildTask
 import com.bugsnag.gradle.android.ExtractBugsnagJniLibsTask
 import com.bugsnag.gradle.android.GenerateBuildIdTask
 import com.bugsnag.gradle.android.GenerateResourcesTask
@@ -18,17 +17,12 @@ import com.bugsnag.gradle.android.onAndroidVariant
 import com.bugsnag.gradle.dsl.BugsnagExtension
 import com.bugsnag.gradle.dsl.VariantConfiguration
 import com.bugsnag.gradle.dsl.debug
-import com.bugsnag.gradle.util.wireFinalizer
-import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.provider.Provider
 import org.gradle.process.ExecOperations
 import javax.inject.Inject
 
-internal const val TASK_GROUP = "BugSnag"
-internal const val UPLOAD_TASK_PREFIX = "bugsnagUpload"
-internal const val CREATE_BUILD_TASK_PREFIX = "bugsnagCreate"
 internal const val CLEAN_TASK = "Clean"
 
 class GradlePlugin @Inject constructor(
@@ -38,17 +32,15 @@ class GradlePlugin @Inject constructor(
         val bugsnag = target.extensions.create("bugsnag", BugsnagExtension::class.java)
         // turn-off the 'debug' variant by default
         bugsnag.variants.debug.enabled = false
-
-        configurePlugin(bugsnag, target)
+        configurePlugin(bugsnag, target, execOperations)
     }
 
-    private fun configurePlugin(bugsnag: BugsnagExtension, target: Project) {
+    private fun configurePlugin(bugsnag: BugsnagExtension, target: Project, execOperations: ExecOperations) {
         target.afterEvaluate {
             if (bugsnag.enabled && bugsnag.enableLegacyNativeExtraction) {
                 registerNdkLibInstallTask(target)
             }
         }
-
         target.onAndroidVariant { variant: AndroidVariant ->
             val variantConfiguration = VariantConfiguration(bugsnag, bugsnag.variants.findByName(variant.name))
 
@@ -254,5 +246,44 @@ private fun configureBugsnagCliTask(
 
     if (task is AbstractUploadTask) {
         task.uploadOptions.configureFrom(bugsnag)
+    }
+            handleVariant(target, bugsnag, variant, execOperations)
+        }
+    }
+
+    private fun handleVariant(
+        target: Project,
+        bugsnag: BugsnagExtension,
+        variant: AndroidVariant,
+        execOperations: ExecOperations
+    ) {
+        val variantConfiguration = VariantConfiguration(
+            bugsnag,
+            bugsnag.variants.findByName(variant.name)
+        )
+        if (!variantConfiguration.enabled) {
+            return
+        }
+        registerBundleAndBuildTasks(target, variantConfiguration, variant, execOperations)
+        registerProguardMappingTask(target, variantConfiguration, variant, execOperations)
+        registerNativeSymbolsTask(target, variantConfiguration, variant, execOperations)
+    }
+
+    private fun registerNdkLibInstallTask(project: Project) {
+        val ndkTasks = project.tasks.withType(ExternalNativeBuildTask::class.java)
+        val cleanTasks = ndkTasks.filter { it.name.contains(CLEAN_TASK) }.toSet()
+        val buildTasks = ndkTasks.filter { !it.name.contains(CLEAN_TASK) }.toSet()
+        if (buildTasks.isNotEmpty()) {
+            val ndkSetupTask = project.tasks.register(
+                "bugsnagInstallJniLibsTask",
+                ExtractBugsnagJniLibsTask::class.java
+            ) { task ->
+                task.group = TASK_GROUP
+                val artifacts = ExtractBugsnagJniLibsTask.resolveBugsnagArtifacts(project)
+                task.bugsnagArtifacts.from(artifacts)
+            }
+            ndkSetupTask.configure { it.mustRunAfter(cleanTasks) }
+            buildTasks.forEach { it.dependsOn(ndkSetupTask) }
+        }
     }
 }
