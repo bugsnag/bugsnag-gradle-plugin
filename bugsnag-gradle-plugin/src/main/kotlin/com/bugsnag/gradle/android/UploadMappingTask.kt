@@ -36,6 +36,7 @@ internal abstract class UploadMappingTask : AbstractUploadTask(), HasAndroidOpti
                 "upload-api-root-url" `=` globalOptions.uploadApiEndpointRootUrl.get()
             }
             "build-uuid" `=` buildUuid
+            "application-id" `=` androidVariantMetadata.applicationId
             "dex-files" `=` dexClassesDir
             "variant" `=` androidVariantMetadata.variantName
             "version-name" `=` androidVariantMetadata.versionName

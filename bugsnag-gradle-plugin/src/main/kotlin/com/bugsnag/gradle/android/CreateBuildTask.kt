@@ -32,7 +32,7 @@ internal abstract class CreateBuildTask : BugsnagCliTask() {
     @TaskAction
     fun createBuild() {
         val buildMetadata = systemMetadata.toMap() + metadata.orElse(emptyMap()).get()
-        val metadataOption = buildMetadata.entries.joinToString(";") { (key, value) -> "$key=$value" }
+        val metadataOption = buildMetadata.entries.joinToString(",") { (key, value) -> "$key=$value" }
         exec("create-build") {
             if (globalOptions.buildApiEndpointRootUrl.isPresent) {
                 "build-api-root-url" `=` globalOptions.buildApiEndpointRootUrl.get()
