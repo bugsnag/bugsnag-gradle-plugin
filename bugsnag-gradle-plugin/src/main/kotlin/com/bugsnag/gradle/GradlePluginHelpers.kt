@@ -176,17 +176,6 @@ internal fun registerNativeSymbolsTask(
         task.projectRoot.set(resolvedProjectRoot)
         task.androidVariantMetadata.variantName.set(resolvedVariantName)
 
-        // if manifest missing we skip configuring files/ndk/upload but the task remains valid
-        if (variant.manifestFile == null) {
-            task.logger.warn(
-                "Skipping native symbols upload for variant ${variant.name}: no AndroidManifest.xml located"
-            )
-            task.logger.warn(
-                "Skipping native symbols upload for variant ${variant.name}: no AndroidManifest.xml located"
-            )
-            return@register
-        }
-
         // configure files & metadata
         task.symbolFiles.from(variant.nativeSymbols)
         task.androidVariantMetadata.configureFrom(variantConfiguration, variant)
@@ -206,7 +195,7 @@ internal fun registerNativeSymbolsTask(
 
 fun registerNdkLibInstallTask(project: Project) {
     val ndkTasks = project.tasks.withType(ExternalNativeBuildTask::class.java)
-    val cleanTasks = ndkTasks.filter { it.name.contains(CLEAN_TASK) }.toSet()
+    val cleanTasks = ndkTasks.filter { it.name.contains(CLEAN_TASK, ignoreCase = true) }.toSet()
     val buildTasks = ndkTasks.filter { !it.name.contains(CLEAN_TASK) }.toSet()
     if (buildTasks.isNotEmpty()) {
         val ndkSetupTask = project.tasks.register(

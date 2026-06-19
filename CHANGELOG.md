@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 (2026-03-18)
+
+### Bug Fixes
+
+- Fix Build UUID mismatch by re-introducing automatic Build UUID generation and resource injection.
+- Ensure all dex files are included when calculating fallback Build UUID in `bugsnag-cli`.
 ## [Unreleased]
 
 ### Bug Fixes
