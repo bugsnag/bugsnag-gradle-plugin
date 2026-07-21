@@ -11,6 +11,8 @@ internal class VariantConfiguration(
     val timeout: Int? get() = variantExtension?.timeout ?: extension.timeout
     val retries: Int? get() = variantExtension?.retries ?: extension.retries
     val apiKey: String? get() = variantExtension?.apiKey ?: extension.apiKey
+    val buildUuidGenerator: (() -> String)?
+        get() = variantExtension?.buildUuidGenerator ?: extension.buildUuidGenerator
     val buildUuid: String? get() = variantExtension?.buildUuid ?: extension.buildUuid
     val versionNameOverride: String? get() = variantExtension?.versionNameOverride ?: extension.versionNameOverride
     val versionCodeOverride: Int? get() = variantExtension?.versionCodeOverride ?: extension.versionCodeOverride
@@ -30,4 +32,11 @@ internal class VariantConfiguration(
 
     val cliPath: String? get() = extension.cliPath
     val enableLegacyNativeExtraction: Boolean get() = extension.enableLegacyNativeExtraction
+
+    internal fun resolveBuildUuid(): String? {
+        return variantExtension?.buildUuidGenerator?.invoke()
+            ?: variantExtension?.buildUuid
+            ?: extension.buildUuidGenerator?.invoke()
+            ?: extension.buildUuid
+    }
 }

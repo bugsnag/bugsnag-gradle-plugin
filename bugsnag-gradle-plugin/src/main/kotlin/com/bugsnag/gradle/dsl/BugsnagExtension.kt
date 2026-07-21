@@ -12,6 +12,8 @@ open class BugsnagExtension @Inject constructor(objects: ObjectFactory) : Bugsna
     override var timeout: Int? = null
     override var retries: Int? = null
     override var apiKey: String? = null
+    @Transient
+    override var buildUuidGenerator: (() -> String)? = null
     override var buildUuid: String? = null
     override var versionNameOverride: String? = null
     override var versionCodeOverride: Int? = null
