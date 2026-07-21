@@ -73,7 +73,8 @@ internal fun registerBundleAndBuildTasks(
     target: Project,
     variantConfiguration: VariantConfiguration,
     variant: AndroidVariant,
-    execOperations: ExecOperations
+    execOperations: ExecOperations,
+    buildUuidResolver: BuildUuidResolver
 ) {
     val uploadBundleTaskName = variant.name.toTaskName(
         prefix = UPLOAD_TASK_PREFIX,
@@ -109,6 +110,7 @@ internal fun registerBundleAndBuildTasks(
             task.variantMetadata.configureFrom(variantConfiguration, variant)
             task.systemMetadata.configureFrom(target, variantConfiguration)
             task.androidManifestFile.set(variant.manifestFile)
+            buildUuidResolver.value?.let { task.buildUuid.set(it) }
             task.projectPath.set(task.project.projectDir.toString())
         }
         if (variantConfiguration.autoCreateBuild) {
@@ -121,7 +123,8 @@ internal fun registerProguardMappingTask(
     target: Project,
     variantConfiguration: VariantConfiguration,
     variant: AndroidVariant,
-    execOperations: ExecOperations
+    execOperations: ExecOperations,
+    buildUuidResolver: BuildUuidResolver
 ) {
     if (variant.obfuscationMappingFile != null) {
         val proguardTaskName = variant.name.toTaskName(
@@ -140,7 +143,7 @@ internal fun registerProguardMappingTask(
                 variant.dexClassesDir?.let {
                     task.dexClassesDir.set(it)
                 }
-                variantConfiguration.buildUuid?.let {
+                buildUuidResolver.value?.let {
                     task.buildUuid.set(it)
                 }
             }
