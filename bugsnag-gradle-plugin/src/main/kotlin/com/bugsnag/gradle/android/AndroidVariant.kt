@@ -105,7 +105,8 @@ private fun Project.getNativeSymbolDirs(variant: Variant): Provider<List<Directo
     }
 
     return project.layout.buildDirectory.map {
-        listOf(it.dir("intermediates/merged_native_libs/${variant.name}/out/lib"))
+        val mergeNativeLibsTaskName = variant.name.toTaskName(prefix = "merge", suffix = "NativeLibs")
+        listOf(it.dir("intermediates/merged_native_libs/${variant.name}/$mergeNativeLibsTaskName/out/lib"))
     }
 }
 
