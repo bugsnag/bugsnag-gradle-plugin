@@ -9,7 +9,6 @@ import com.bugsnag.gradle.dsl.VariantConfiguration
 import com.bugsnag.gradle.dsl.debug
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.provider.Provider
 import org.gradle.process.ExecOperations
 import javax.inject.Inject
 
@@ -37,16 +36,29 @@ class GradlePlugin @Inject constructor(
             target.onAndroidVariant { variant: AndroidVariant ->
                 val variantConfiguration =
                     VariantConfiguration(bugsnag, bugsnag.variants.findByName(variant.name))
+                val buildUuidResolver = BuildUuidResolver(variantConfiguration)
 
                 if (!variantConfiguration.enabled) return@onAndroidVariant
 
                 // Delegate to helpers (single source of truth)
-                registerBundleAndBuildTasks(target, variantConfiguration, variant, execOperations)
-                registerProguardMappingTask(target, variantConfiguration, variant, execOperations)
+                registerBundleAndBuildTasks(
+                    target,
+                    variantConfiguration,
+                    variant,
+                    execOperations,
+                    buildUuidResolver
+                )
+                registerProguardMappingTask(
+                    target,
+                    variantConfiguration,
+                    variant,
+                    execOperations,
+                    buildUuidResolver
+                )
                 registerNativeSymbolsTask(target, variantConfiguration, variant, execOperations)
 
                 // Keep build id/resources generation local
-                registerBuildIdGenerationTask(target, variant, variantConfiguration)
+                registerBuildIdGenerationTask(target, variant, buildUuidResolver)
             }
         }
     }
@@ -55,25 +67,21 @@ class GradlePlugin @Inject constructor(
 private fun registerBuildIdGenerationTask(
     target: Project,
     variant: AndroidVariant,
-    variantConfiguration: VariantConfiguration
-): Provider<String> {
+    buildUuidResolver: BuildUuidResolver
+) {
     val generateBuildIdTask = target.tasks.register(
         variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "BuildId"),
         GenerateBuildIdTask::class.java
     ) { task ->
         task.group = TASK_GROUP
-        task.buildUuid.set(variantConfiguration.buildUuid)
+        buildUuidResolver.value?.let { task.buildUuid.set(it) }
         val buildIdFile = target.layout.buildDirectory.file(
             "intermediates/bugsnag/build-id-${variant.name}.txt"
         )
         task.outputFile.set(buildIdFile)
     }
 
-    val buildUuidProvider = generateBuildIdTask.flatMap { it.outputFile }
-        .map { it.asFile.readText().trim() }
-
     val variantResources = variant.variant
-    // ... existing code ...
     val generateResourcesTask = target.tasks.register(
         variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "Resources"),
         GenerateResourcesTask::class.java
@@ -89,7 +97,6 @@ private fun registerBuildIdGenerationTask(
         generateResourcesTask,
         GenerateResourcesTask::outputDirectory
     )
-    return buildUuidProvider
 }
 
 private fun hasAndroidPluginApplied(project: Project): Boolean {
