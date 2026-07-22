@@ -24,8 +24,8 @@ internal data class AndroidVariant(
      * not enabled for this variant.
      */
     val obfuscationMappingFile: Provider<RegularFile>?,
-    val versionName: Property<String?>?,
-    val versionCode: Property<Int?>?,
+    val versionName: Property<String>?,
+    val versionCode: Property<Int>?,
     val applicationId: Provider<String>?,
     val dexClassesDir: Provider<Directory>?,
     val variant: Variant
