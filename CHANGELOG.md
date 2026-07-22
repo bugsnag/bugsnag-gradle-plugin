@@ -4,7 +4,7 @@
 
 ### Enhancements
 
-- Add support for Android Gradle Plugin 9+
+- Add support for Android Gradle Plugin 9+[#79](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/79)
 
 ## 1.1.1 (2026-03-18)
 
