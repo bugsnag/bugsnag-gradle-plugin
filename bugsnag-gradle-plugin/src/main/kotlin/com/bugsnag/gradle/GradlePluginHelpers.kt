@@ -1,6 +1,6 @@
 package com.bugsnag.gradle
 
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.bugsnag.gradle.android.AndroidVariant
 import com.bugsnag.gradle.android.CreateBuildTask
@@ -17,18 +17,18 @@ import org.gradle.process.ExecOperations
 import java.io.File
 
 private fun resolveNdkDir(target: Project): File? {
-    val androidExt = try {
-        target.extensions.findByType(BaseExtension::class.java)
+    val androidComponents = try {
+        target.extensions.findByType(AndroidComponentsExtension::class.java)
     } catch (e: NoClassDefFoundError) {
         // AGP is not present — log the caught error, so it isn't swallowed and
         // can be inspected in CI logs.
         target.logger.debug(
-            "Android Gradle Plugin not present; cannot resolve ndkDirectory from BaseExtension",
+            "Android Gradle Plugin not present; cannot resolve ndkDirectory from AndroidComponentsExtension",
             e
         )
         null
     }
-    return androidExt?.ndkDirectory?.takeIf { it.exists() }
+    return androidComponents?.sdkComponents?.ndkDirectory?.orNull?.asFile?.takeIf { it.exists() }
         ?: System.getenv("ANDROID_NDK_ROOT")?.let { File(it) }?.takeIf { it.exists() }
 }
 

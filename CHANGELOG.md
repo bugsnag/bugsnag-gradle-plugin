@@ -1,12 +1,17 @@
 # Changelog
 
-## 1.1.0 (2026-03-18)
+## 1.2.0 (2026-07-22)
+
+### Enhancements
+
+- Add support for Android Gradle Plugin 9+
+
+## 1.1.1 (2026-03-18)
 
 ### Bug Fixes
 
-- Fix Build UUID mismatch by re-introducing automatic Build UUID generation and resource injection.
+- Fix: Build UUID mismatch by re-introducing automatic Build UUID generation and resource injection.
 - Ensure all dex files are included when calculating fallback Build UUID in `bugsnag-cli`.
-## [Unreleased]
 
 ### Bug Fixes
 
