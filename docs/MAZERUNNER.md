@@ -15,3 +15,28 @@ E2E tests are implemented with our testing tool [Maze runner](https://github.com
     ```
 1. To run all features, omit the final argument, but be wary of how many tests you run locally as we have a limited number of parallel tests and local running subverts the controls we have in place.  For a full test run it is generally best to push your branch to Github and let CI run them.
 1. Maze Runner also supports all options that Cucumber does.  Run `bundle exec maze-runner --help` for full details.
+
+### Validating multiple AGP versions
+
+The fixture app defaults to AGP `9.2.1`, but the end-to-end suite can be run against any AGP 9.x version by setting `AGP_VERSION`.
+
+For a smoke test against the current default version:
+
+```shell script
+make test-fixture
+```
+
+For a full matrix run across multiple AGP versions and the core Android features:
+
+```shell script
+make check-agp-matrix
+```
+
+You can override the versions or features directly:
+
+```shell script
+AGP_VERSIONS="9.0.0 9.1.0 9.2.1" \
+AGP_MATRIX_FEATURES="features/aab_upload.feature features/native_upload.feature" \
+./features/scripts/agp_matrix.sh
+```
+

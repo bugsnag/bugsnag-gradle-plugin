@@ -39,6 +39,13 @@ interface BugsnagCommonExtension {
      */
     var apiKey: String?
 
+    /**
+     * Optionally generate a build UUID for the current variant. When set, the generator is invoked once per
+     * configured variant during the build and the resulting value is reused across manifest generation and CLI
+     * uploads.
+     */
+    var buildUuidGenerator: (() -> String)?
+
     var buildUuid: String?
 
     /**

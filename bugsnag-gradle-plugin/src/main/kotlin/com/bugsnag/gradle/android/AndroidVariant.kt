@@ -11,6 +11,7 @@ import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.plugins.BasePlugin
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 
 internal data class AndroidVariant(
@@ -23,9 +24,9 @@ internal data class AndroidVariant(
      * not enabled for this variant.
      */
     val obfuscationMappingFile: Provider<RegularFile>?,
-    val versionName: Provider<String?>?,
-    val versionCode: Provider<Int?>?,
-    val applicationId: Provider<String?>?,
+    val versionName: Property<String>?,
+    val versionCode: Property<Int>?,
+    val applicationId: Provider<String>?,
     val dexClassesDir: Provider<Directory>?,
     val variant: Variant
 ) {
@@ -33,6 +34,7 @@ internal data class AndroidVariant(
         get() = name.toTaskName(prefix = "bundle")
 }
 
+@Suppress("UnstableApiUsage")
 internal fun Project.isMinifyEnabledFor(variant: Variant): Boolean {
     return variant is CanMinifyCode && variant.isMinifyEnabled || hasDexguardPlugin()
 }
@@ -42,7 +44,7 @@ internal fun Project.onAndroidVariant(consumer: (variant: AndroidVariant) -> Uni
         project.plugins.withType(BasePlugin::class.java) {
             collectVariants(consumer)
         }
-    } catch (ex: NoClassDefFoundError) {
+    } catch (_: NoClassDefFoundError) {
         // ignore these - AGP is not available in this Project
     }
 }
@@ -92,7 +94,7 @@ private fun Project.collectVariants(consumer: (variant: AndroidVariant) -> Unit)
                 )
             }
         }
-    } catch (ex: NoClassDefFoundError) {
+    } catch (_: NoClassDefFoundError) {
         // ignore these - AGP is not available in this Project
     }
 }
@@ -103,7 +105,8 @@ private fun Project.getNativeSymbolDirs(variant: Variant): Provider<List<Directo
     }
 
     return project.layout.buildDirectory.map {
-        listOf(it.dir("intermediates/merged_native_libs/${variant.name}/out/lib"))
+        val mergeNativeLibsTaskName = variant.name.toTaskName(prefix = "merge", suffix = "NativeLibs")
+        listOf(it.dir("intermediates/merged_native_libs/${variant.name}/$mergeNativeLibsTaskName/out/lib"))
     }
 }
 

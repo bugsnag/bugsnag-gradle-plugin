@@ -1,6 +1,6 @@
 package com.bugsnag.gradle
 
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.variant.AndroidComponentsExtension
 import com.android.build.gradle.tasks.ExternalNativeBuildTask
 import com.bugsnag.gradle.android.AndroidVariant
 import com.bugsnag.gradle.android.CreateBuildTask
@@ -17,18 +17,18 @@ import org.gradle.process.ExecOperations
 import java.io.File
 
 private fun resolveNdkDir(target: Project): File? {
-    val androidExt = try {
-        target.extensions.findByType(BaseExtension::class.java)
+    val androidComponents = try {
+        target.extensions.findByType(AndroidComponentsExtension::class.java)
     } catch (e: NoClassDefFoundError) {
         // AGP is not present — log the caught error, so it isn't swallowed and
         // can be inspected in CI logs.
         target.logger.debug(
-            "Android Gradle Plugin not present; cannot resolve ndkDirectory from BaseExtension",
+            "Android Gradle Plugin not present; cannot resolve ndkDirectory from AndroidComponentsExtension",
             e
         )
         null
     }
-    return androidExt?.ndkDirectory?.takeIf { it.exists() }
+    return androidComponents?.sdkComponents?.ndkDirectory?.orNull?.asFile?.takeIf { it.exists() }
         ?: System.getenv("ANDROID_NDK_ROOT")?.let { File(it) }?.takeIf { it.exists() }
 }
 
@@ -73,7 +73,8 @@ internal fun registerBundleAndBuildTasks(
     target: Project,
     variantConfiguration: VariantConfiguration,
     variant: AndroidVariant,
-    execOperations: ExecOperations
+    execOperations: ExecOperations,
+    buildUuidResolver: BuildUuidResolver
 ) {
     val uploadBundleTaskName = variant.name.toTaskName(
         prefix = UPLOAD_TASK_PREFIX,
@@ -109,6 +110,7 @@ internal fun registerBundleAndBuildTasks(
             task.variantMetadata.configureFrom(variantConfiguration, variant)
             task.systemMetadata.configureFrom(target, variantConfiguration)
             task.androidManifestFile.set(variant.manifestFile)
+            buildUuidResolver.value?.let { task.buildUuid.set(it) }
             task.projectPath.set(task.project.projectDir.toString())
         }
         if (variantConfiguration.autoCreateBuild) {
@@ -121,7 +123,8 @@ internal fun registerProguardMappingTask(
     target: Project,
     variantConfiguration: VariantConfiguration,
     variant: AndroidVariant,
-    execOperations: ExecOperations
+    execOperations: ExecOperations,
+    buildUuidResolver: BuildUuidResolver
 ) {
     if (variant.obfuscationMappingFile != null) {
         val proguardTaskName = variant.name.toTaskName(
@@ -140,7 +143,7 @@ internal fun registerProguardMappingTask(
                 variant.dexClassesDir?.let {
                     task.dexClassesDir.set(it)
                 }
-                variantConfiguration.buildUuid?.let {
+                buildUuidResolver.value?.let {
                     task.buildUuid.set(it)
                 }
             }

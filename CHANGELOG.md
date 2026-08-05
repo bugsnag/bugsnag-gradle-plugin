@@ -1,15 +1,17 @@
 # Changelog
 
-## 1.1.1 (2026-07-03)
+## 1.2.0 (2026-07-22)
+
+### Enhancements
+
+- Add support for Android Gradle Plugin 9+[#79](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/79)
+
+## 1.1.1 (2026-03-18)
 
 ### Bug Fixes
 
--Fix: Prevent duplicate task registration when using the splits block in Android Gradle projects. The plugin now checks for existing tasks before registering, 
-      avoiding exceptions like "Cannot add task 'bugsnagUploadAlphaDebugBundle' as a task with that name already exists."[71](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/71)
--Fix: Build UUID mismatch by re-introducing automatic Build UUID generation and resource injection.
-      Ensure all dex files are included when calculating fallback Build UUID in bugsnag-cli.[73](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/73)
-
-## 1.1.0 (2026-03-18)
+- Fix: Build UUID mismatch by re-introducing automatic Build UUID generation and resource injection.
+- Ensure all dex files are included when calculating fallback Build UUID in `bugsnag-cli`.
 
 ### Bug Fixes
 
