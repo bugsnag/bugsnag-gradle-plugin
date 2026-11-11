@@ -69,8 +69,18 @@ private fun registerBuildIdGenerationTask(
     variant: AndroidVariant,
     buildUuidResolver: BuildUuidResolver
 ) {
+    // onAndroidVariant is invoked once per enabled APK output, so projects using ABI / density splits will call
+    // this several times for the same variant. Register the tasks (and the generated res directory) only once.
+    val generateBuildIdTaskName = variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "BuildId")
+    val generateResourcesTaskName = variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "Resources")
+    if (target.tasks.findByName(generateBuildIdTaskName) != null ||
+        target.tasks.findByName(generateResourcesTaskName) != null
+    ) {
+        return
+    }
+
     val generateBuildIdTask = target.tasks.register(
-        variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "BuildId"),
+        generateBuildIdTaskName,
         GenerateBuildIdTask::class.java
     ) { task ->
         task.group = TASK_GROUP
@@ -83,7 +93,7 @@ private fun registerBuildIdGenerationTask(
 
     val variantResources = variant.variant
     val generateResourcesTask = target.tasks.register(
-        variant.name.toTaskName(prefix = "bugsnagGenerate", suffix = "Resources"),
+        generateResourcesTaskName,
         GenerateResourcesTask::class.java
     ) { task ->
         task.group = TASK_GROUP
