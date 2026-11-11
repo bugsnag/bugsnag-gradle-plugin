@@ -29,7 +29,7 @@ mkdir -p "$GRADLE_DIR"
 } >> "$GRADLE_PROPERTIES"
 
 # === Build, Publish and Close===
-./gradlew clean publishAllPublicationsToOssrhStagingRepository publishPlugins --no-daemon --max-workers=1
+./gradlew clean publishAllPublicationsToOssrhStagingRepository --no-daemon --max-workers=1
 
 echo "--- Closing staging repository"
 echo "Fetching staging repositories..."
