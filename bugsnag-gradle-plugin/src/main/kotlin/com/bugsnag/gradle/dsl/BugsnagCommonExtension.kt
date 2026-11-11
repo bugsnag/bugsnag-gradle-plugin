@@ -1,6 +1,13 @@
 package com.bugsnag.gradle.dsl
 
+import org.gradle.api.Action
 import java.io.File
+
+open class SourceControl {
+    var provider: String? = null
+    var repository: String? = null
+    var revision: String? = null
+}
 
 interface BugsnagCommonExtension {
     /**
@@ -108,4 +115,35 @@ interface BugsnagCommonExtension {
     var metadata: MutableMap<String, String>?
 
     var builderName: String?
+
+    /**
+     * The release stage to associate with the created build. Leave unset to allow the CLI/server default.
+     */
+    var releaseStage: String?
+
+    /**
+     * Override the Git information auto-detected for the build. Any field left unset falls back to the
+     * top-level `bugsnag { sourceControl { ... } }` value, and then to the CLI's auto-detection.
+     */
+    var sourceControl: SourceControl?
+
+    /**
+     * Configure [sourceControl] using a block:
+     * ```
+     * sourceControl {
+     *     provider = "github"
+     *     repository = "https://github.com/example/repo"
+     *     revision = "abc123"
+     * }
+     * ```
+     */
+    fun sourceControl(action: Action<in SourceControl>) {
+        val target = sourceControl ?: SourceControl().also { sourceControl = it }
+        action.execute(target)
+    }
+
+    /**
+     * Files to exclude from uploads. Patterns are passed through to `bugsnag-cli --exclude`.
+     */
+    var exclude: MutableList<String>?
 }
