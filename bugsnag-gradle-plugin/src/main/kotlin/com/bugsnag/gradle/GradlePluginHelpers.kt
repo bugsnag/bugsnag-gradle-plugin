@@ -73,8 +73,7 @@ internal fun registerBundleAndBuildTasks(
     target: Project,
     variantConfiguration: VariantConfiguration,
     variant: AndroidVariant,
-    execOperations: ExecOperations,
-    buildUuidResolver: BuildUuidResolver
+    execOperations: ExecOperations
 ) {
     val uploadBundleTaskName = variant.name.toTaskName(
         prefix = UPLOAD_TASK_PREFIX,
@@ -110,7 +109,11 @@ internal fun registerBundleAndBuildTasks(
             task.variantMetadata.configureFrom(variantConfiguration, variant)
             task.systemMetadata.configureFrom(target, variantConfiguration)
             task.androidManifestFile.set(variant.manifestFile)
-            buildUuidResolver.value?.let { task.buildUuid.set(it) }
+            variantConfiguration.releaseStage?.let { task.releaseStage.set(it) }
+            val sourceControl = variantConfiguration.sourceControl
+            sourceControl.provider?.let { task.provider.set(it) }
+            sourceControl.repository?.let { task.repository.set(it) }
+            sourceControl.revision?.let { task.revision.set(it) }
             task.projectPath.set(task.project.projectDir.toString())
         }
         if (variantConfiguration.autoCreateBuild) {
