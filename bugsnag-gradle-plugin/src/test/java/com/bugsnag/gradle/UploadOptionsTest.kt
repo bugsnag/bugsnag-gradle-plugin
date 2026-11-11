@@ -18,12 +18,13 @@ class UploadOptionsTest {
         options.overwrite.set(true)
         options.timeout.set(987)
         options.retries.set(42)
+        options.exclude.set(listOf("**/*.map", "node_modules/**"))
 
         val execSpec = DefaultExecSpec(IdentityFileResolver())
         options.addToExecSpec(execSpec)
 
         assertEquals(
-            listOf("--overwrite", "--timeout=987", "--retries=42"),
+            listOf("--overwrite", "--timeout=987", "--retries=42", "--exclude=**/*.map", "--exclude=node_modules/**"),
             execSpec.args
         )
     }
@@ -41,6 +42,7 @@ class UploadOptionsTest {
             overwrite = true
             timeout = 987
             retries = 42
+            exclude = mutableListOf("**/*.map", "node_modules/**")
         }
 
         val config = VariantConfiguration(bugsnag)
@@ -51,5 +53,6 @@ class UploadOptionsTest {
 
         assertEquals(987, options.timeout.get())
         assertEquals(42, options.retries.get())
+        assertEquals(listOf("**/*.map", "node_modules/**"), options.exclude.get())
     }
 }

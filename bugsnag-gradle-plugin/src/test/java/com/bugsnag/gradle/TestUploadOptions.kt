@@ -1,7 +1,9 @@
 package com.bugsnag.gradle
 
+import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 
 @Suppress("UNCHECKED_CAST")
@@ -12,4 +14,6 @@ internal class TestUploadOptions : UploadOptions, PropertyHost by PropertyHost.N
         DefaultProperty(this, Integer::class.java) as Property<Int>
     override val retries: Property<Int> =
         DefaultProperty(this, Integer::class.java) as Property<Int>
+    override val exclude: ListProperty<String> =
+        DefaultListProperty(this, String::class.java) as ListProperty<String>
 }

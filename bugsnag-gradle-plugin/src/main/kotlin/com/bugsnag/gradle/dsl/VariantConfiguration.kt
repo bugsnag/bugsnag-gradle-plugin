@@ -26,6 +26,14 @@ internal class VariantConfiguration(
     val ndkRoot: File? get() = variantExtension?.ndkRoot ?: extension.ndkRoot
     val metadata: MutableMap<String, String>? = variantExtension?.metadata ?: extension.metadata
     val builderName: String? get() = variantExtension?.builderName ?: extension.builderName
+    val releaseStage: String? get() = variantExtension?.releaseStage ?: extension.releaseStage
+    val sourceControl: SourceControl
+        get() = SourceControl().apply {
+            provider = variantExtension?.sourceControl?.provider ?: extension.sourceControl?.provider
+            repository = variantExtension?.sourceControl?.repository ?: extension.sourceControl?.repository
+            revision = variantExtension?.sourceControl?.revision ?: extension.sourceControl?.revision
+        }
+    val exclude: MutableList<String>? get() = variantExtension?.exclude ?: extension.exclude
 
     val autoUploadBundle: Boolean = variantExtension?.autoUploadBundle == true
     val autoCreateBuild: Boolean = variantExtension?.autoCreateBuild ?: variantExtension?.autoUploadBundle ?: false

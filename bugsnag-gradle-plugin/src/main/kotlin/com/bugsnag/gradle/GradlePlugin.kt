@@ -45,8 +45,7 @@ class GradlePlugin @Inject constructor(
                     target,
                     variantConfiguration,
                     variant,
-                    execOperations,
-                    buildUuidResolver
+                    execOperations
                 )
                 registerProguardMappingTask(
                     target,
