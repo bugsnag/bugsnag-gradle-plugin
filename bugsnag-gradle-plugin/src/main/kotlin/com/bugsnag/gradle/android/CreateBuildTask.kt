@@ -6,6 +6,7 @@ import org.gradle.api.Project
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Nested
@@ -31,7 +32,19 @@ internal abstract class CreateBuildTask : BugsnagCliTask() {
 
     @get:Input
     @get:Optional
-    abstract val buildUuid: Property<String>
+    abstract val releaseStage: Property<String>
+
+    @get:Input
+    @get:Optional
+    abstract val provider: Property<String>
+
+    @get:Input
+    @get:Optional
+    abstract val repository: Property<String>
+
+    @get:Input
+    @get:Optional
+    abstract val revision: Property<String>
 
     @TaskAction
     fun createBuild() {
@@ -44,10 +57,9 @@ internal abstract class CreateBuildTask : BugsnagCliTask() {
             "metadata" `=` metadataOption
             "app-manifest" `=` androidManifestFile
             "builder-name" `=` systemMetadata.builderName
-            "release-stage" `=` variantMetadata.variantName
             "version-name" `=` variantMetadata.versionName
             "version-code" `=` variantMetadata.versionCode.map { it.toString() }
-            "build-uuid" `=` buildUuid
+            addBuildOptions(releaseStage, provider, repository, revision)
 
             +projectPath.get().toString()
         }
@@ -82,6 +94,23 @@ internal abstract class CreateBuildTask : BugsnagCliTask() {
         @get:Input
         val builderName: Property<String>
     }
+}
+
+/**
+ * Adds the release-stage and source-control options to a `create-build` command. Options without a value are
+ * omitted entirely, so the CLI / server defaults apply (e.g. the `production` release stage and git
+ * auto-detection). Note that `create-build` has no `--build-uuid` option, so it must never be passed here.
+ */
+internal fun BugsnagCliTask.BugsnagCliBuilder.addBuildOptions(
+    releaseStage: Provider<String>,
+    provider: Provider<String>,
+    repository: Provider<String>,
+    revision: Provider<String>
+) {
+    "release-stage" `=` releaseStage
+    "provider" `=` provider
+    "repository" `=` repository
+    "revision" `=` revision
 }
 
 private const val PROP_OS_ARCH = "os.arch"

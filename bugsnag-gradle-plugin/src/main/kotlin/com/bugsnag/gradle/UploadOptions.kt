@@ -1,6 +1,7 @@
 package com.bugsnag.gradle
 
 import com.bugsnag.gradle.dsl.VariantConfiguration
+import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Optional
@@ -18,6 +19,10 @@ interface UploadOptions {
     @get:Input
     @get:Optional
     val retries: Property<Int>
+
+    @get:Input
+    @get:Optional
+    val exclude: ListProperty<String>
 }
 
 internal fun UploadOptions.addToExecSpec(execSpec: ExecSpec) {
@@ -32,10 +37,15 @@ internal fun UploadOptions.addToExecSpec(execSpec: ExecSpec) {
     if (retries.getOrElse(0) > 0) {
         execSpec.args("--retries=${retries.get()}")
     }
+
+    if (exclude.isPresent && exclude.get().isNotEmpty()) {
+        exclude.get().forEach { execSpec.args("--exclude=$it") }
+    }
 }
 
 internal fun UploadOptions.configureFrom(extension: VariantConfiguration) {
     extension.timeout?.let { timeout.set(it) }
     extension.retries?.let { retries.set(it) }
     overwrite.set(extension.overwrite)
+    extension.exclude?.takeIf { it.isNotEmpty() }?.let { exclude.set(it) }
 }

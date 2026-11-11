@@ -25,6 +25,9 @@ open class BugsnagExtension @Inject constructor(objects: ObjectFactory) : Bugsna
     override var ndkRoot: File? = null
     override var metadata: MutableMap<String, String>? = LinkedHashMap()
     override var builderName: String? = null
+    override var releaseStage: String? = null
+    override var sourceControl: SourceControl? = null
+    override var exclude: MutableList<String>? = mutableListOf()
 
     /**
      * Optionally the path of the `bugsnag-cli` executable, if not specified then the plugin will attempt to
