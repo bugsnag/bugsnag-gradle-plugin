@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.1 (2026-11-11)
+
+### Enhancements
+
+- Add `releaseStage`, `sourceControl` (`provider`, `repository`, `revision`) and `exclude` options, configurable at the top level or per variant. Unset options fall back to the `bugsnag-cli`/server defaults [#90](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/90)
+
+### Bug Fixes
+
+- Stop passing `--build-uuid` to `create-build`, which `bugsnag-cli` rejects [#90](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/90)
+- If `releaseStage` is not set, builds now default to the `production` release stage instead of the variant name [#90](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/90)
+- Fix "Task name already exists" build failure when APK splits (ABI or density) are enabled. Build ID tasks are now registered once per variant, and all split outputs share the same build ID [#89](https://github.com/bugsnag/bugsnag-gradle-plugin/pull/89)
+
 ## 1.2.0 (2026-07-22)
 
 ### Enhancements

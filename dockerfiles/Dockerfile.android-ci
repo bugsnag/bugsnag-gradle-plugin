@@ -4,12 +4,16 @@ RUN apt-get update > /dev/n
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y wget maven gnupg1 cppcheck libncurses5 jq clang-format unzip curl git
 RUN apt-get clean > /dev/null
 
-RUN echo "deb https://ppa.launchpadcontent.net/longsleep/golang-backports/ubuntu jammy main" > /etc/apt/sources.list.d/golang-backports.list
-RUN echo "deb-src https://ppa.launchpadcontent.net/longsleep/golang-backports/ubuntu jammy main" >> /etc/apt/sources.list.d/golang-backports.list
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 52B59B1571A79DBC054901C0F6BC817356A3D45E
-RUN apt-get update > /dev/n
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y golang-1.22
-ENV PATH="${PATH}:/usr/lib/go-1.22/bin"
+# Install Go from the official tarball (the golang-backports PPA drops old versions,
+# which breaks the build). Must be >= the `go` directive in bugsnag-cli/go.mod.
+ARG GO_VERSION=1.26.1
+ARG GO_SHA256=031f088e5d955bab8657ede27ad4e3bc5b7c1ba281f05f245bcc304f327c987a
+RUN wget -q "https://go.dev/dl/go${GO_VERSION}.linux-amd64.tar.gz" -O /tmp/go.tar.gz \
+    && echo "${GO_SHA256}  /tmp/go.tar.gz" | sha256sum -c - \
+    && tar -C /usr/local -xzf /tmp/go.tar.gz \
+    && rm /tmp/go.tar.gz
+ENV PATH="${PATH}:/usr/local/go/bin"
+ENV GOTOOLCHAIN=local
 
 ENV ANDROID_SDK_ROOT="/sdk"
 ENV ANDROID_CMDLINE_TOOLS="${ANDROID_SDK_ROOT}/cmdline-tools/latest"
